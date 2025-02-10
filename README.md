@@ -21,10 +21,12 @@ public class Dog extends Animal{
 	obj.animalSound();
    }
 }
+'''
 
 **Output:
 '''java
 Woof
+'''
 
 ## 2. Encapsulation
 We protect some part of our code that we do not want direct access from user. This prevent from changing covered parts that we want to hide and from deterioration of the code. Public parts are accessible by everywhere but private parts are only accessible by specific methods. There is another type which is called 'protected' used to access only in the same class and subclass.
