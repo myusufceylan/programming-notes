@@ -35,3 +35,120 @@ Woof
 ## 2. Encapsulation
 We protect some part of our code that we do not want direct access from users. This prevents changing covered parts that we want to hide and from the deterioration of the code. Public parts are accessible everywhere, but private parts are only accessible by specific methods. There is another type which is called `protected`, used to access only in the same class and subclass.
 
+```java
+class EmployeeCount
+{
+   private int numOfEmployees = 0;
+   public void setNoOfEmployees (int count)
+   {
+       numOfEmployees = count;
+   }
+   public double getNoOfEmployees () 
+   {
+       return numOfEmployees;
+   }
+}
+public class EncapsulationExample
+{
+   public static void main(String args[])
+   {
+      EmployeeCount obj = new EmployeeCount ();
+      obj.setNoOfEmployees(5613);
+      System.out.println("No Of Employees: "+(int)obj.getNoOfEmployees());
+    }
+}
+```
+
+**Output:**
+```java
+No Of Employees: 5613
+```
+
+## 3. Inheritance
+We can derive subclasses from the base class. We do not need to create the same states and behaviors again and again. When we create a subclass it automatically has the same state variables and behaviour methods as in the base class but we can give specific parameters for the subclass. It prevents the reusage of the same code and make the code visibly clear and prevents from waste of memory.
+
+```java
+class Teacher {
+   String designation = "Teacher";
+   String college = "Beginnersbook";
+   void does(){
+	System.out.println("Teaching");
+   }
+}
+public class MathTeacher extends Teacher{
+   String mainSubject = "Maths";
+   public static void main(String args[]){
+      MathTeacher obj = new MathTeacher();
+      System.out.println(obj.college);
+      System.out.println(obj.designation);
+      System.out.println(obj.mainSubject);
+      obj.does();
+   }
+}
+```
+
+**Output:**
+```java
+Beginnersbook
+Teacher
+Maths
+Teaching
+```
+
+## 4. Polymorphism
+If we want to use the same method but with different attributes we can call the same method without needing to create a new method. In real time, we have two different animal but they both make a sound. So the method is the same but the outcome of the methods are different. The lion class is with "Roar" sound and the cat class is with "Meow" sound. We have two types of polymorphism static (overloading) and dynamic (overriding).
+
+**Overloading:** When we use the same method in the same class but with different attributes we can use overloading. It calls the method according to the arguments that we give.
+
+```java
+class DisplayOverloading
+{
+    public void disp(char c)
+    {
+         System.out.println(c);
+    }
+    public void disp(char c, int num)  
+    {
+         System.out.println(c + " "+num);
+    }
+}
+public class ExampleOverloading
+{
+   public static void main(String args[])
+   {
+       DisplayOverloading obj = new DisplayOverloading();
+       obj.disp('a');
+       obj.disp('a',10);
+   }
+}
+```
+
+**Output:**
+```java
+a
+a 10
+```
+
+**Overriding:** We can derive subclasses from classes and we can use the same method for base class and child class. While defining a new object in the main function if we use base class constructor it calls base class' method and if we use child class constructor it calls child class' method and it is called *overriding*.
+
+```java
+class Animal{
+   public void animalSound(){
+	System.out.println("Default Sound");
+   }
+}
+public class Dog extends Animal{
+
+   public void animalSound(){
+	System.out.println("Woof");
+   }
+   public static void main(String args[]){
+	Animal obj = new Dog();
+	obj.animalSound();
+   }
+}
+
+**Output:**
+```java
+Woof
+```
