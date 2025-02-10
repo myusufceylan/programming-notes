@@ -152,3 +152,25 @@ public class Dog extends Animal{
 ```java
 Woof
 ```
+
+## Constructors
+Contructor is a block of code that we use to initialize an object we created. Constructor has the same name as the object name. 
+
+```java
+public class Hello {
+   String name;
+   //Constructor
+   Hello(){
+      this.name = "Programmer";
+   }
+   public static void main(String[] args) {
+      Hello obj = new Hello();
+      System.out.println(obj.name);
+   }
+}
+
+**Output:**
+```java
+Programmer
+```
+
