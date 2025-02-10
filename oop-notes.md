@@ -1,7 +1,7 @@
 # Object Oriented Programming Notes
 
 ## What is Object Oriented Programming?
-We define objects which have states and behaviors by class blueprint. State means the arguments of the object and the behavior means the methods of the object. In real world, we can define a car as an object. Car has model, colour, speed etc. All of them are states of the Car object. Also, cars accelerate, stop, or park and these are the behaviours of the object Car. We can define different Car objects with these states and behaviours in the same class. This is object-oriented programming.
+We define objects which have states and behaviors by class blueprint. State means the attributes of the object and the behavior means the methods of the object. In real world, we can define a car as an object. Car has model, colour, speed etc. All of them are states of the Car object. Also, cars accelerate, stop, or park and these are the behaviours of the object Car. We can define different Car objects with these states and behaviours in the same class. This is object-oriented programming.
 
 Object-Oriented Programming has 4 critical concepts: **Abstraction, Encapsulation, Inheritance, and Polymorphism.**
 
