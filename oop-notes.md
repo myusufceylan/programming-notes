@@ -176,7 +176,8 @@ public class Hello {
 Programmer
 ```
 
-**Type Promotion:** When a data type of smaller size is promoted to a data type of bigger size we call it type promotion. For example byte can be promoted to short, float can be promoted to double etc.
+## Type Promotion 
+When a data type of smaller size is promoted to a data type of bigger size we call it type promotion. For example byte can be promoted to short, float can be promoted to double etc.
 
 ```java
 class Promotion {
@@ -201,3 +202,11 @@ class Promotion {
 ```java
 Method A
 ```
+| From Type | Can be promoted to |
+|-----------|--------------------|
+| `byte`    | `short → int → long → double` |
+| `short`   | `int → long → float → double` |
+| `int`     | `long → float → double` |
+| `float`   | `double` |
+| `long`    | `float → double` |
+| `char`    | `int → long → float → double` |
