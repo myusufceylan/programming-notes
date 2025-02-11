@@ -176,3 +176,28 @@ public class Hello {
 Programmer
 ```
 
+**Type Promotion:** When a data type of smaller size is promoted to a data type of bigger size we call it type promotion. For example byte can be promoted to short, float can be promoted to double etc.
+
+```java
+class Promotion {
+   void disp(int a, double b) {
+	System.out.println("Method A");
+   }
+   void disp(int a, double b, double c) {
+	System.out.println("Method B");
+   }
+   public static void main(String args[]) {
+	Promotion obj = new Promotion();
+	/* I am passing float value as a second argument but
+         * it got promoted to the type double, because there
+     	 * wasn't any method having arg list as (int, float)
+     	 */
+	obj.disp(100, 20.67);
+   }
+}
+```
+
+**Output:**
+```java
+Method A
+```
