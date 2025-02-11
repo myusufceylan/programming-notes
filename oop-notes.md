@@ -210,3 +210,52 @@ Method A
 | `float`   | `double` |
 | `long`    | `float → double` |
 | `char`    | `int → long → float → double` |
+
+## Aggregation
+A class can use another class' states in order to maintain code reusability. Aggregation represents HAS-A relationship. For example, we have two classes Student and Address. Every student **has a** address but not every address has a student. So aggregation is **one directional**. 
+
+```java
+class Address {
+   int streetNum;
+   String city;
+   String state;
+   String country;
+   Address(int street, String c, String st, String coun) {
+       this.streetNum=street;
+       this.city =c;
+       this.state = st;
+       this.country = coun;
+   }
+}
+
+class StudentClass {
+   int rollNum;
+   String studentName;
+   Address studentAddr;
+   StudentClass(int roll, String name, Address addr) {
+	this.rollNum = roll;
+	this.studentName = name;
+	this.studentAddr = addr;
+   }
+   public static void main(String args[]) {
+	Address ad = new Address(55, "Agra", "UP", "India");
+	StudentClass obj = new StudentClass(123, "Chaitanya", ad);
+	System.out.println(obj.rollNum);
+	System.out.println(obj.studentName);
+	System.out.println(obj.StudentAddr.streetNum);
+	System.out.println(obj.StudentAddr.city);
+	System.out.println(obj.StudentAddr.state);
+	System.out.println(obj.StudentAddr.country);
+   }
+}
+```
+
+**Output:**
+```java
+123
+Chaitanya
+55
+Agra
+UP
+India
+```
