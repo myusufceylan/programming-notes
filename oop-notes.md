@@ -261,7 +261,7 @@ India
 ```
 
 ## Static Keyword
-We use static keyword when we want make our class, block, method or variable accessible everywhere not only in the same class. When we put the static keyword then we can access it from other classes.
+We use static keyword when we want to make our class, block, method or variable accessible from everywhere not only from the same class. When we put the static keyword then we can access it from other classes.
 
 ```java
 class JavaExample{
