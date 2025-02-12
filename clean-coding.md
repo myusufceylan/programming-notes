@@ -11,15 +11,15 @@ Maven suggests the following structure:
 
 ## Source File Structure
 Order of elements in a source file should be like this:
-- Package statement
-- Import statements
-    -Static import statements
-    -Non-static import statements
-- Exactly one top-level class
-    -Class variables
-    -Instance variables
-    -Constructors
-    -Methods
+- **Package statement**
+- **Import statements**
+  - All static imports
+  - All non-static imports
+- **Exactly one top-level class**
+  - Class variables
+  - Instance variables
+  - Constructors
+  - Methods
 
 An example for this:
 ```java
