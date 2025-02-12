@@ -21,7 +21,6 @@ Order of elements in a source file should be like this:
   - Constructors
   - Methods
 
-An example for this:
 ```java
 # /src/main/java/com/baeldung/application/entity/Customer.java
 package com.baeldung.application.entity;
