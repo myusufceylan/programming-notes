@@ -1,5 +1,5 @@
 # Java Naming Conventions
-We must obey some rules to keep our code easily readable and understandable.
+We should be careful while giving names in order to make our code easily readable and understandable.
 
 ## 1 Naming Packages
 Should start with all lowercase domain name and rest of the part is up to organization's naming rules.
