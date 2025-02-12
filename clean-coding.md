@@ -8,3 +8,18 @@ Maven suggests the following structure:
 * *src/main/resources:* For resource files
 * *src/test/java:* For test source files
 * *src/test/java:* For test resource files
+
+## Source File Structure
+Order of elements in a source file should be like this:
+- Package statement
+- Import statements
+    -Static import statements
+    -Non-static import statements
+- Exactly one top-level class
+    -Class variables
+    -Instance variables
+    -Constructors
+    -Methods
+
+An example for this:
+```java
