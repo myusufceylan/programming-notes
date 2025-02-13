@@ -82,9 +82,13 @@ public addCustomerAddress(Address address) {
 
 ## SOLID
 **Single Responsibility Principle:** Every interface, class or method should have one clear goal.
+
 **Open-Closed Principle:** Our code should be open to extensions but closed to modification. Namely,our code should be well design and we should not need to modificate it but we can extend it for inheritence and composition.
+
 **Liskov-Substitution Principle:** Every subclass or derived class should be substitutional to their parent or base class. This reduce coupling between classes.
+
 **Interface Segregation Principle:** Interfaces are blueprints for classes. A class must not need to implement a method that It does not have to do. We need smaller and focussed interfaces.
+
 **Dependency Inversion Principle:** Classes should only depend on abstractions not on concrete implementations. Classes should not be responsible for creating objects, implementations should be enjected into classes.
 
 ## DRY & KISS
