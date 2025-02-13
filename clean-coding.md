@@ -103,3 +103,6 @@ Test Driven Development is used to test the code in everystep to find if there i
 - Then write and test the function
 - If it is necessary we can improve our code (refactoring).
 - Since we test in everystep our code becomes reliable.
+
+## Reference
+[Baeldung - Java Clean Code](https://www.baeldung.com/java-clean-code)
