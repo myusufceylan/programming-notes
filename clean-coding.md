@@ -89,6 +89,7 @@ public addCustomerAddress(Address address) {
 
 ## DRY & KISS
 **DRY:** means Don't Repeat Yourself. We should avoid duplication of code to keep it clean and focussed.
+
 **KISS:** means Keep It Simple, Stupid. We should keep de code as simple as possible.
 
 ## TDD
