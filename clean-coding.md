@@ -51,4 +51,11 @@ It is easy to read short texts comparing to long texts. Similarly, we use whites
 - One blank line after a method signature that is multiline.
 - A single space seperating keywords if, for from an open parantheses; else from a closing parantheses.
 
-## Identation
+## Indentation
+We should use tab or 4 spaces while indenting. For methods, we should break after a comma; for expressions, we should break before an operator. After the break we should indent 2 spaces.
+
+```java
+List<String> customerIds = customer.stream()
+  .map(customer -> customer.getCustomerId())
+  .collect(Collectors.toCollection(ArrayList::new));
+```
