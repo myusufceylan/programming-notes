@@ -79,3 +79,6 @@ public @interface FunctionalInterface {}
 public @Async Documented {}
 public @Test Documented {}
 ```
+
+## Reference
+[HowToDoInJava - Java Naming Conventions](https://howtodoinjava.com/java/basics/java-naming-conventions/)
