@@ -304,5 +304,3 @@ ob1 String:I'm Object1
 ob2 integer:99
 ob2 STring:I'm Object2
 ```
-
-## Garbage Collection
