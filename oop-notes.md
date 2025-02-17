@@ -304,3 +304,9 @@ ob1 String:I'm Object1
 ob2 integer:99
 ob2 STring:I'm Object2
 ```
+
+## Garbage Collection
+Garbage collection is automatically removing unused or unreachable objects in the memory to prevent memory leakge and provide performance efficiency. It has 3 phases:
+**Marking:** The GC marks the live objects using the memory.
+**Sweeping:** The GC removes the unmarked objects from the memory.
+**Compacting:** The GC reorganizes the heap to optimize the memory usage.
