@@ -107,4 +107,40 @@ public class ShapePrinter {
 }
 ```
 
-        
+**Solution:**
+- We added a Shape abstract class:
+```java
+public abstract class Shape {
+    abstract void draw();
+}
+```
+- Refactor Rectangle class to extends from Shape:
+```java
+public class Rectangle extends Shape {
+
+    private int width;
+    private int height;
+
+    // getter and setter methods...
+
+    @Override
+    public void draw() {
+        // Draw the Rectangle...
+    }
+}
+```
+- Refactor Square class to extends from Shape:
+```java
+public class Square extends Shape {
+
+    private int side;
+
+    // getter and setter methods...
+
+    @Override
+    public void draw() {
+        // Draw the Square...
+    }
+}
+```
+
