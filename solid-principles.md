@@ -27,17 +27,44 @@ public class Customer {
 
     //This is a Responsibility
     public void storeCustomer(String customerName) {
-       //store customer into a database...
+       // store customer into a database...
     }
 
     //This is another Responsibility
     public void generateCustomerReport(String customerName) {
-       //generate a report...
+       // generate a report...
     }
 }
 ```
 
 **Better Solution:**
 
-- Customer Class
+- Customer class:
 ```java
+public class Customer {
+
+    private String name;
+
+    // getter and setter methods
+}
+```
+
+- CustomerDB class for persistence responsibility:
+```java
+public class CustomerDB {
+
+    public void storeCustomer(String customerName) {
+       // store customer into a database...
+    }
+}
+```
+
+- CustomerReportGenerator for the report generation responsibility.
+```java
+public class CustomerReportGenerator {
+
+    public void generateReport(String customerName) {
+       // generate a report...
+    }
+}
+```
