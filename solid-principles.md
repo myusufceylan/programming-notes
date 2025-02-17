@@ -417,3 +417,6 @@ public class DeliveryCompany {
     }
 }
 ```
+
+## Reference
+[SOLID Principles: The Definitive Guide](https://medium.com/android-news/solid-principles-the-definitive-guide-75e30a284dea)
