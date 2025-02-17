@@ -145,7 +145,7 @@ public class Square extends Shape {
 ```
 
 ## Liskov Substitution Principle (LSP)
-A subclass should be replaceable with its superclass without breaking anything. We should be able to use child class of a parent class without any problem in any case.
+A subclass should be replaceable with its superclass without breaking anything. Methods work on the parent class should also work on the child class without any issue.
 
 **Violation of LSP:**
 - We have a Rectangle class:
