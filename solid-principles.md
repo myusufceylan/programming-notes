@@ -59,7 +59,7 @@ public class CustomerDB {
 }
 ```
 
-- CustomerReportGenerator for the report generation responsibility.
+- CustomerReportGenerator for the report generation responsibility:
 ```java
 public class CustomerReportGenerator {
 
@@ -68,3 +68,43 @@ public class CustomerReportGenerator {
     }
 }
 ```
+
+## Open Closed Principle (OCP)
+According to this rule; classes, methods etc. should be **open** to extensions but **closed** to modifications. So we should be able to add new features to our code without needing to modify the code.
+
+**Violation of OCP:**
+- We have Rectangle class:
+```java
+public class Rectangle {
+
+    private int width;
+    private int height;
+
+    // getter and setter methods...
+}
+```
+- Also, we have a Square class:
+``` java
+public class Square {
+
+    private int side;
+
+    // getter and setter methods...
+}
+```
+- And we have a ShapePrinter class that draws several types of shapes:
+```java
+public class ShapePrinter {
+
+    public void drawShape(Object shape) {
+
+        if (shape instance of Rectangle) {
+            // Draw Rectangle...
+        } else if (shape instance of Square) {
+            // Draw Square...
+        }
+    }
+}
+```
+
+        
