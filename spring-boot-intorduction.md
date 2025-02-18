@@ -10,6 +10,9 @@ Spring is a lightweight and open-source Java framework to build enterprise appli
 - Simplify database operations
 
 **Bean:** is an object managed by Spring IoC container.
+
 **Inversion of Control (IoC):** is the factory that create and manages beans.
+
 **Dependency Injection (DI):** Instead of creating dependencies manually, Spring injects them automatically.
+
 **Spring Model View Controller (MVC):** Helps create web applications.
