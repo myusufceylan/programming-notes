@@ -16,3 +16,5 @@ Spring is a lightweight and open-source Java framework to build enterprise appli
 **Dependency Injection (DI):** Instead of creating dependencies manually, Spring injects them automatically.
 
 **Spring Model View Controller (MVC):** Helps create web applications.
+
+**Aspect-Oriented Programming (AOP):** Enhances functionality of the methods without modifying them.
