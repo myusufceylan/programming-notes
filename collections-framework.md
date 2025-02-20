@@ -142,3 +142,17 @@ Chaitanya
 Ajeet
 Steve
 ```
+
+## 2. Set
+A set is a Collection that cannot have duplicate elements.
+
+### 2.1 HashSet
+HashSet stores its elements in a hash table. It does not maintain insertion order.
+```java
+
+
+### 2.2 LinkedHashSet
+It is same as HashSet but it maintains insertions order.
+
+### 2.3 TreeSet
+TreeSet stores its elements in a red-black tree. The elements are sorted in ascending order.
