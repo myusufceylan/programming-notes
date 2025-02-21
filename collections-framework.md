@@ -262,9 +262,86 @@ public class JavaExample {
         Iterator iterator = set.iterator();
         while (iterator.hasNext()) {
             Map.Entry m = (Map.Entry)iterator.next();
-            System.out.print("Key is: " + m.getKey() + "Value is: ");
+            System.out.print("Key is: " + m.getKey() + "& Value is: ");
             System.out.println(m.getValue());
         }
     }
 }
+```
+
+**Output:**
+```java
+Key is: 101 & Value is: Chaitanya
+Key is: 120 & Value is:
+Key is: 105 & Value is: Derick
+Key is: 111 & Value is: Logan
+```
+
+### 3.2 LinkedHashMap
+It is like HashMap but it manages the insertion order. So it is slightly slower than HashMap.
+```java
+import java.util.*;
+
+public class JavaExample{
+    public static void main(String args[]){
+        LinkedHashMap<Integer, String> hmap = new LinkedHashMap<>();
+    
+        //key and value pairs
+        hmap.put(100, "Chaitanya");
+        hmap.put(120, "Paul");
+        hmap.put(105, "Derick");
+        hmap.put(111, "Logan");
+    
+        //print LinkedHashMap elements
+        Set set = hmap.entrySet();
+        Iterator iterator = set.iterator();
+        while(iterator.hasNext()) {
+            Map.Entry m = (Map.Entry)iterator.next();
+            System.out.print("key is: "+ m.getKey() + " & Value is: ");
+            System.out.println(m.getValue());
+        }
+    }
+}
+```
+
+**Output:**
+```java
+key is: 100 & Value is: Chaitanya
+key is: 120 & Value is: Paul
+key is: 105 & Value is: Derick
+key is: 111 & Value is: Logan
+```
+
+### 3.3 TreeMap
+It stores the elements in a red-black tree. The elements are sorted in ascending order. It is slower than HashMap.
+```java
+import java.util.*;
+
+public class JavaExample {
+    public static void main(String[] args) {
+        TreeMap<Integer, String> tmap = new TreeMap<>();
+        //key and value pairs
+        tmap.put(101, "Chaitanya");
+        tmap.put(105, "Derick");
+        tmap.put(111, "Logan");
+        tmap.put(120, "Paul");
+
+        // print TreeMap elements
+        Set set = tmap.entrySet();
+        Iterator iterator = set.iterator();
+        while (iterator.hasNext()) {
+            Map.Entry m = (Map.Entry)iterator.next();
+            System.out.print("key is: " + m.getKey() + "& Value is: ");
+            System.out.println(m.getValue());
+        }
+    }
+}
+```
+
+**Output:**
+```java
+key is: 101 & Value is: Chaitanya
+key is: 105 & Value is: Derick
+key is: 111 & Value is: Logan
+key is: 120 & Value is: Paul
 ```
