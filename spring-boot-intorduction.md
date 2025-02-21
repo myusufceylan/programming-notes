@@ -1,7 +1,7 @@
 # Spring Boot Introduction
 
 ## What is Spring?
-**Spring** is a lightweight and open-source Java framework to build enterprise applications.
+**Spring** is a lightweight and open-source Java framework to build applications.
 While **Spring Boot** is a microservice based framework that uses all the spring features but in a easier way. It is auto-configured, hence we do not have to configure XML files or other configuration files. Microservices divides the huge applications into smaller ones to manage them easily.
 
 **Why use Spring**
