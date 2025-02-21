@@ -149,10 +149,122 @@ A set is a Collection that cannot have duplicate elements.
 ### 2.1 HashSet
 HashSet stores its elements in a hash table. It does not maintain insertion order.
 ```java
+import java.util.*;
 
+public class JavaExample {
+    public static void main(String[] args) {
+        HashSet<String> set = new HashSet<>();
+        set.add("Paul");
+        set.add("Ram");
+        set.add("Aaron");
+        set.add("Leo");
+        set.add("Becky");
+
+        Iterator<String> it = set.iterator();
+        while (it.hasNext()) {
+            System.out.println(it.next());
+        }
+    }
+}
+```
+
+**Output:**
+```java
+Aaron
+Leo
+Paul
+Ram
+Becky
+```
 
 ### 2.2 LinkedHashSet
 It is same as HashSet but it maintains insertions order.
+```java
+import java.util.*;
+
+public class JavaExample{
+    public static void main(String args[]){
+        LinkedHashSet<String> set=new LinkedHashSet<>();
+        set.add("Paul");
+        set.add("Ram");
+        set.add("Aaron");
+        set.add("Leo");
+        set.add("Becky");
+    
+        Iterator<String> it=set.iterator();
+        while(it.hasNext()){
+            System.out.println(it.next());
+        }
+    }
+}
+```
+
+**Output:**
+```java
+Paul
+Ram
+Aaron
+Leo
+Becky
+```
 
 ### 2.3 TreeSet
 TreeSet stores its elements in a red-black tree. The elements are sorted in ascending order.
+```java
+import java.util.*;
+
+public class JavaExample {
+    public static void main() {
+        TreeSet<String> set=new TreeSet<>();
+        set.add("Paul");
+        set.add("Ram");
+        set.add("Aaron");
+        set.add("Leo");
+        set.add("Becky");
+    
+        Iterator<String> it=set.iterator();
+        while(it.hasNext()){
+          System.out.println(it.next());
+        }
+    }
+}
+```
+
+**Output:**
+```java
+Aaron
+Becky
+Leo
+Paul
+Ram
+```
+
+## 3. Map
+A map is an object maps values with their keys. It cannot have duplicate keys.
+
+### 3.1 HasMap
+It does not manage insertion order.
+```java
+import java.util.*;
+
+public class JavaExample {
+    public static void main(String[] args) {
+        HashMap<Integer, String> hmap = new HashMap<>();
+
+        // keys and value pairs
+        hmap.put(101, "Chaitanya");
+        hmap.put(105, "Derick");
+        hmap.put(111, "Logan");
+        hmap.put(120, "Paul");
+
+        // print HashMap elements
+        Set set = hmap.entrySet();
+        Iterator iterator = set.iterator();
+        while (iterator.hasNext()) {
+            Map.Entry m = (Map.Entry)iterator.next();
+            System.out.print("Key is: " + m.getKey() + "Value is: ");
+            System.out.println(m.getValue());
+        }
+    }
+}
+```
