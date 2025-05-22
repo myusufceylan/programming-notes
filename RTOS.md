@@ -164,3 +164,116 @@ gcc -O2 -Wall periodic.c -o periodic -lrt
 ```c
 vTaskDelayUntil(&lastWakeTime, xDelay);
 ```
+
+# FreeRTOS – Görevler (Tasks)
+
+## 1. FreeRTOS Nedir?
+
+- FreeRTOS, küçük sistemlerde görevleri yönetmek için kullanılan açık kaynaklı bir gerçek-zamanlı çekirdek yazılımıdır.
+- Masaüstü işletim sistemleri gibi dosya sistemi, pencere yönetimi, sürücüler içermez.
+- Sadece görev planlaması, bekleme, sıralama, öncelik gibi temel sistem yönetimini sağlar.
+
+---
+
+## 2. Görev (Task) Nedir?
+
+- Görev, FreeRTOS’un çalıştırıp yönettiği bir kod bloğudur.
+- Her görev:
+  - Kendi fonksiyonuna sahiptir
+  - Kendi stack (yığın) belleğini kullanır
+  - Bir öncelik değeriyle FreeRTOS tarafından sıralanır
+  - Sistem tarafından “beklemede”, “hazır”, “çalışıyor” gibi durumlarda olabilir
+
+### Görev Formatı:
+
+```c
+void MyTask(void *pvParameters)
+{
+    for (;;)
+    {
+        // Görev burada sürekli çalışır
+    }
+}
+```
+
+- `pvParameters`: Göreve dışarıdan veri geçmek için kullanılır  
+- `for (;;)` → Görev bitmemelidir, FreeRTOS’un kontrolünden çıkmamalıdır
+
+---
+
+## 3. Görev Oluşturma (`xTaskCreate`)
+
+### Kullanım:
+
+```c
+xTaskCreate(
+    MyTask,             // Görev fonksiyonu
+    "TaskName",         // Görev adı (debug için)
+    128,                // Stack boyutu (word cinsinden)
+    NULL,               // Parametre (isteğe bağlı)
+    2,                  // Öncelik
+    NULL                // Görev tanıtıcısı (isteğe bağlı)
+);
+```
+
+- Bu işlem genellikle `main()` fonksiyonu içinde yapılır
+
+---
+
+## 4. Scheduler Başlatma (`vTaskStartScheduler`)
+
+- Görevler tanımlandıktan sonra scheduler başlatılmalıdır:
+
+```c
+vTaskStartScheduler();
+```
+
+- Bu fonksiyon çağrıldıktan sonra kontrol tamamen FreeRTOS’a geçer.  
+- `main()` fonksiyonunun altındaki kodlar artık çalışmaz.
+
+---
+
+## 5. Görev Önceliği
+
+- Öncelik değeri: Daha yüksek sayı = daha öncelikli  
+- Aynı önceliğe sahip görevler round-robin (sıralı) şekilde çalışır  
+- Daha yüksek öncelikli görev aktif olursa **diğer görev durdurulur**
+
+---
+
+## 6. Görev Zamanlaması (`vTaskDelay`)
+
+### Kullanım:
+
+```c
+vTaskDelay(pdMS_TO_TICKS(500));  // 500 ms bekle
+```
+
+- Görevi belirtilen süre boyunca **Blocked** durumuna geçirir  
+- Diğer görevlerin çalışmasına izin verir  
+- `pdMS_TO_TICKS()` makrosu, sistemin tick süresinden bağımsız olarak **gerçek zamanlı bekleme sağlar**
+
+---
+
+## 7. Örnek Kod
+
+```c
+void LEDTask(void *pvParameters)
+{
+    for (;;)
+    {
+        gpio_toggle(LED_PIN);                   // LED’i yak/söndür
+        vTaskDelay(pdMS_TO_TICKS(500));         // 500 ms bekle
+    }
+}
+
+int main(void)
+{
+    board_init();
+    xTaskCreate(LEDTask, "LED", 128, NULL, 1, NULL);
+    vTaskStartScheduler();
+
+    // Buraya asla gelinmez
+    for (;;);
+}
+```
