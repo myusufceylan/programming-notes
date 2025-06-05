@@ -1,3 +1,43 @@
+# 🚀 Gömülü Sistemler Öğrenme Serisi – Yazılım & Donanım Temelli
+
+---
+
+## ⏱️ Bölüm 1: Gerçek Zamanlı İşletim Sistemleri (RTOS) ve Gömülü Yazılım
+
+### 🧠 Gün 1 – RTOS Nedir? Avantajları ve Temel Yapısı  
+### 🧠 Gün 2 – Görevler, Zamanlayıcılar, Durumlar  
+### 🧠 Gün 3 – FreeRTOS'a Giriş: Görevler ve Delay  
+### 🧠 Gün 4 – Semaphore, Mutex, Queue, Event Group  
+### 🧠 Gün 5 – Yazılım Zamanlayıcıları ve ISR Haberleşmesi  
+### 🧠 Gün 6 – FDIR (Fault Detection, Isolation & Recovery)  
+### 🧠 Gün 7 – EEPROM, FRAM, Boot Flag, Safe Mode  
+### 🧠 Gün 8 – AMP: Asymmetric Multiprocessing (Linux + RTOS)  
+### 🧠 Gün 9 – ARM Cortex-R5 Mimarisi  
+### 🧠 Gün 10 – GDB ve Valgrind ile Debug Süreci  
+### 🧠 Gün 11 – CMake / Make: Derleme Süreci  
+### 🧠 Gün 12 – CI / CD: Gömülü Sistemlerde DevOps Yaklaşımı  
+### 🧠 Gün 13 – Unit Test: Görevler, ISR ve Mocklama
+
+---
+
+## 🔩 Bölüm 2: Donanım Bilinci – Gelişmiş Gömülü Sistem Bileşenleri
+
+### 🧠 Gün 14 – FPGA Sınıfları: Artix, Kintex, Virtex, Zynq  
+### 🧠 Gün 15 – FPGA Speed Grade Nedir? (-1, -2, -3)  
+### 🧠 Gün 16 – Industrial Temperature ve Sıcaklık Sınıfları  
+### 🧠 Gün 17 – Golden Image: Güvenli Boot ve Geri Dönüş Yapısı  
+### 🧠 Gün 18 – Bit Scrambling & Data Encoding Yaklaşımları  
+### 🧠 Gün 19 – ECC (Error Correction Code) ile Bellek Güvenliği  
+### 🧠 Gün 20 – System Hardening: Fiziksel ve Elektronik Sertlik  
+### 🧠 Gün 21 – Yazılım Taraflı Hardness & Watchdog Entegrasyonu  
+### 🧠 Gün 22 – Power-on Reset, Brown-out Detection, Startup Logic  
+### 🧠 Gün 23 – Bootloader Temelleri ve Çoklu Firmware Yönetimi  
+### 🧠 Gün 24 – Memory Map, Flash Partitions, Linker Script Okuma  
+### 🧠 Gün 25 – Peripheral’lerle Düşük Seviye Haberleşme (SPI/I2C/UART)  
+### 🧠 Gün 26 – Donanım Tabanlı Zamanlama: Timer, Counter, PWM  
+### 🧠 Gün 27 – GPIO, Interrupt, DMA Kullanımı ve Donanım Etkileşimi  
+
+
 # Gerçek-Zamanlı Sistemlere Giriş
 
 ## 1. Gerçek-Zamanlılık Nedir?
