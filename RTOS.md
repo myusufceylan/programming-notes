@@ -1643,3 +1643,80 @@ XWdtPs_SetControlValue(&WdtInstance, XWDTPS_CRR, 0x76); // Watchdog beslemesi
 - Stack/heap taşması gibi yazılımsal hatalar **donanımı etkilemeden önce** yakalanmalıdır  
 - **Watchdog**, FDIR sisteminin **çekirdeğidir**  
 - Hatalı bir watchdog tasarımı, sistemi **gereksiz yere resetleyebilir** → test kritik önem taşır  
+
+
+# Power-on Reset, Brown-out Detection, Startup Logic
+
+## Power-on Reset (POR)
+
+- Sistem ilk kez enerji verildiğinde devreye giren **otomatik sıfırlama (reset) mekanizmasıdır**  
+- Tüm bileşenlerin **deterministik ve kararlı bir başlangıç** yapmasını sağlar  
+- Mikrodenetleyici ve FPGA’lerde genellikle **donanım tabanlı olarak entegredir**  
+
+---
+
+## POR Devresi Nasıl Çalışır?
+
+- **Vcc voltajı** yeterli seviyeye ulaşana kadar sistemi reset durumunda tutar  
+- Voltaj **stabil hale gelince** → reset bırakılır ve sistem başlar  
+- Genellikle bir **RC zamanlayıcı** veya dahili analog devre ile tetiklenir  
+
+```
+|----|                POR aktif (reset)
+     |----------------> Normal çalışma
+   0V       3.3V (Vcc)
+```
+
+---
+
+## Brown-out Detection (BOD)
+
+- Sistem çalışırken **voltaj belirli bir eşik altına düşerse** bunu algılar  
+- **Bellek bozulması** veya **boot hatalarını** önlemek için reset tetikleyebilir  
+- Bazı sistemlerde sadece **flag üretir**, bazıları otomatik **reset** atar  
+
+---
+
+### BOD Kullanım Senaryosu
+
+- Güç kaynağına ani yük → voltaj düşüşü  
+- Bu sırada **flash yazımı** ya da **boot** oluyorsa sistem zarar görebilir  
+- BOD bunu algılayıp reset atarak sistemi korur  
+
+---
+
+## Startup Logic (Başlangıç Mantığı)
+
+- Sistem açıldığında bileşenlerin hangi sırayla devreye gireceğini belirler  
+- Tipik sıralama:
+
+  1. **Power-on Reset**
+  2. **Clock stabilizasyonu**
+  3. **Bootloader / FSBL yüklenmesi**
+  4. **Firmware doğrulaması**
+  5. **Ana uygulamanın başlatılması**
+
+```c
+if (check_power_good() && check_clk_lock()) {
+    boot_main_firmware();
+} else {
+    enter_safe_mode();
+}
+```
+
+---
+
+## Zynq Sistemlerinde Uygulama
+
+- PS (Processing System) açıldığında otomatik olarak **POR + BOD logic** çalışır  
+- BootROM → eFuse → FSBL → Uygulama sırası uygulanır  
+- Voltaj izleme ve müdahale, **PMU (Power Management Unit)** üzerinden yapılabilir  
+
+---
+
+## İpuçları
+
+- **POR süresi** doğru ayarlanmazsa sistem **sonsuz reset döngüsüne** girebilir  
+- **BOD eşikleri** donanımda ayarlanabilir olmalı ve test edilmelidir  
+- **Startup logic**, FDIR ve watchdog ile **entegre bir yapı** olarak düşünülmelidir  
+- BOD olayları yazılımda **loglanmalı** ve gerekirse **uygulama davranışı değiştirilmelidir**  
