@@ -122,3 +122,64 @@ vTaskDelayUntil(&lastWakeTime, tick);  // Periyodik görevler için daha kararl�
 
 - Her görev **stack overflow**’a karşı izlenmelidir (`configCHECK_FOR_STACK_OVERFLOW`)  
 - **Öncelik hataları**: *Priority Inversion* riski → `Mutex` ile çözülür  
+
+
+# FreeRTOS'a Giriş: Görevler ve Delay
+
+## FreeRTOS Nedir?
+
+- Hafif ve açık kaynaklı gerçek zamanlı işletim sistemi çekirdeğidir  
+- Mikrodenetleyiciler ve gömülü sistemler için tasarlanmıştır  
+- Kütüphane gibi projeye eklenir, kernel ayrı derlenir  
+
+## Temel Kavramlar
+
+- **Tick**: Her bir RTOS zaman birimi (`configTICK_RATE_HZ` ile belirlenir)  
+- **Task**: Bağımsız çalışan fonksiyonlar  
+- **Idle Task**: Sistem boşta olduğunda otomatik çalışan görev  
+- **Hook Functions**: Sistem olayları için özel fonksiyon tanımları  
+  - Örn: `vApplicationIdleHook`, `vApplicationTickHook`  
+
+## Görev Oluşturma (xTaskCreate)
+
+```c
+xTaskCreate(
+    vTaskFunction,    // Görev fonksiyonu
+    "TaskName",       // Görev ismi (debug için)
+    STACK_SIZE,       // Stack boyutu (word cinsinden)
+    NULL,             // Parametre
+    PRIORITY,         // Görev önceliği
+    &xHandle          // Görev tanıtıcısı
+);
+```
+
+## Görev Geciktirme (vTaskDelay)
+
+```c
+vTaskDelay(pdMS_TO_TICKS(1000)); // 1 saniye uyur
+```
+
+- Görev delay süresince `Blocked` durumundadır  
+- CPU, başka görevleri çalıştırmakta serbesttir  
+- Non-busy wait sağlar (verimli bekleme)  
+
+## Periyodik Görev Örneği
+
+```c
+TickType_t lastWakeTime = xTaskGetTickCount();
+while(1) {
+    do_work();
+    vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(100));
+}
+```
+
+- `vTaskDelayUntil` zaman tabanlı periyodik işler için daha tutarlıdır  
+- İlk parametre olarak "son uyanma zamanı" bilgisi verilir  
+- `do_work()` işlemi tamamlandığında kalan süre kadar uyur  
+
+## İpuçları
+
+- `vTaskDelay()` ve `vTaskDelayUntil()` ISR (Interrupt Service Routine) içinde kullanılmaz  
+- Delay sırasında görev CPU’dan tamamen çekilir (low-power dostu)  
+- Periyodik görevlerde `vTaskDelayUntil()` kullanımı zamanlamayı sabit tutar  
+
