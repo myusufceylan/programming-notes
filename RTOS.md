@@ -570,3 +570,90 @@ FSBL → U-Boot → Linux başlar → RemoteProc ile FreeRTOS (Core 1) başlatı
 - I-Cache ve D-Cache etkili ama predictability dikkat ister
 - R5’in bellek alanı Linux’ten izole edilmelidir (AMP senaryolarında)
 
+
+# GDB ve Valgrind ile Debug Süreci
+
+## GDB Nedir?
+
+- **GNU Debugger**  
+- C/C++ gibi diller için hata ayıklama aracıdır  
+- Bellek içerikleri, değişken değerleri, call stack izlenebilir  
+- Zynq gibi platformlarda JTAG, UART veya semihosting üzerinden bağlanabilir  
+
+---
+
+### Temel GDB Komutları
+
+```bash
+gdb ./my_program.elf
+(gdb) break main        # main fonksiyonunda dur
+(gdb) run               # programı çalıştır
+(gdb) next              # satır atla
+(gdb) step              # fonksiyona gir
+(gdb) print var         # değişken değeri göster
+(gdb) backtrace         # çağrı yığını göster
+(gdb) info locals       # yerel değişkenleri listele
+```
+
+---
+
+### GDB ile Uzak Debug (Remote Debug)
+
+```bash
+(gdb) target remote :3333
+```
+
+- `OpenOCD`, `XSDB`, `J-Link GDB Server` gibi araçlarla bağlantı sağlanabilir  
+- Zynq R5 için örnek XSCT akışı:
+
+```tcl
+xsct
+connect
+targets -set -filter {name =~ "Cortex-R5#0"}
+rst -processor
+dow my_r5_app.elf
+con
+```
+
+---
+
+## Valgrind Nedir?
+
+- Bellek sızıntılarını ve bellek erişim hatalarını analiz eder  
+- **Sadece Linux kullanıcı alanı** uygulamaları için geçerlidir (RTOS üzerinde çalışmaz)  
+- En çok kullanılan aracı: **memcheck**
+
+---
+
+### Valgrind Kullanımı
+
+```bash
+valgrind --leak-check=full ./my_app
+```
+
+#### Örnek Uyarı
+
+```
+==1234== Invalid write of size 4
+==1234==    at 0x4005D4: main (example.c:10)
+```
+
+---
+
+## GDB + Valgrind Farkı
+
+| Özellik         | GDB                                 | Valgrind                         |
+|------------------|--------------------------------------|-----------------------------------|
+| Hedef            | Her platform                         | Sadece Linux kullanıcı alanı      |
+| Sağladığı şey    | Adım adım izleme, değişken okuma     | Bellek hataları, leak tespiti     |
+| Gerçek Zamanlı   | ✅ Evet                              | ❌ Hayır, uygulamayı yavaşlatır   |
+
+---
+
+## İpuçları
+
+- GDB ile ISR fonksiyonları da **breakpoint** ile izlenebilir  
+- Valgrind sadece **geliştirme/simülasyon** ortamında kullanılır  
+- FreeRTOS gibi sistemlerde GDB kullanımı için `-g` derleme flag’i zorunludur  
+- **Memory leak** şüphesinde Valgrind ile test yapılması önerilir  
+
