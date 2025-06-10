@@ -1045,3 +1045,79 @@ ceedling test:all
 - Küçük projeler için **Artix**, gerçek zamanlı kontrol için **Zynq**, DSP için **Kintex**, HPC için **Virtex** uygundur  
 - Zynq sistemleri yazılım + donanım birlikte çalışmayı öğrenmek için idealdir  
 - Board seçiminde **power budget** ve **I/O ihtiyaçları** kritik önemdedir
+
+
+# FPGA Speed Grade Nedir? (-1, -2, -3)
+
+## Tanım
+
+- FPGA’lerin **işleme hızı ve zamanlama performansını** belirten sınıflamasıdır  
+- Daha **düşük sayı**, daha **hızlı FPGA** anlamına gelir  
+  - Örnek: `-3` → en hızlı, `-1` → en yavaş  
+
+---
+
+## Ne Etkiler?
+
+- **Maksimum Clock Frekansı (Fmax)**  
+- **Setup / Hold Timing Margin**  
+- **Timing Closure** başarısını  
+- **Veri Yolu Gecikmesi (Data Path Delay)**  
+- **Zamanlama ihlalleri (timing violation)** çözüm yollarını  
+
+---
+
+## Speed Grade Karşılaştırma
+
+| Speed Grade | Hız         | Güç Tüketimi | Fiyat      | Kullanım Tipi              |
+|-------------|-------------|--------------|------------|-----------------------------|
+| `-3`        | ✅ En hızlı | ❌ Yüksek     | ❌ Pahalı  | Zaman kritik tasarımlar     |
+| `-2`        | Orta        | Orta         | Orta       | Genel amaçlı tasarımlar     |
+| `-1`        | ❌ En yavaş | ✅ Düşük      | ✅ Ucuz    | Düşük frekanslı uygulamalar |
+
+---
+
+## Neden Her Zaman En Hızlıyı Kullanmayız?
+
+- Daha hızlı FPGA’ler:
+  - Daha fazla **güç tüketir**
+  - Daha **pahalıdır**
+  - **Soğutma ihtiyacı** doğurur
+- Gerçek tasarımlarda genellikle **Fmax’in %80–90’ı** kullanılır  
+- Bu nedenle çoğu uygulama için `-2` sınıfı **yeterli ve dengeli bir tercih** olur  
+
+---
+
+## Vivado’da Kullanımı
+
+- `Timing Report (Report Timing Summary)` dosyasında Fmax ve Slack bilgisi yer alır  
+- Speed grade’e göre:
+  - `Slack` artabilir veya azalabilir  
+  - `Worst Negative Slack (WNS)` değişebilir  
+
+### Timing Violation varsa:
+
+- **Pipelining** ekle  
+- Daha hızlı **Speed Grade** seç  
+- **Placement/Route** optimizasyonu yap  
+
+---
+
+## Koddan Örnek Speed Grade Ayarı
+
+```tcl
+# Vivado'da device seçiminde örnek:
+set_property part xc7z020clg484-1 [current_project]
+```
+
+- Buradaki `-1`, speed grade bilgisidir  
+- `-2`, `-3` versiyonları da aynı chip için farklı hızlarda mevcuttur  
+
+---
+
+## İpuçları
+
+- Sadece timing violation çözmek için speed grade yükseltmek **maliyetlidir**  
+- `-2` sınıfı, çoğu tasarım için **dengeli çözümdür**  
+- **Isı, maliyet ve güç tüketimi birlikte** değerlendirilmelidir  
+
