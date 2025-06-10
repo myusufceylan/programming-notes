@@ -1535,3 +1535,111 @@ parameter C_USE_ECC = 1;
 - Fiziksel hardening, yazılım sertliğiyle birlikte düşünülmelidir  
 - Geliştirilen ürün için kullanılacak ortam (hava, deniz, askeri) **baştan tanımlanmalı**  
 - Gereksiz koruma → maliyet ve güç tüketimini artırır → denge gerekir
+
+
+# Yazılım Taraflı Hardness & Watchdog Entegrasyonu
+
+## Yazılımsal Hardness Nedir?
+
+- Sistem yazılımının **beklenmedik durumlara karşı dayanıklı** hale getirilmesidir  
+- Donanım tabanlı güvenliği **tamamlayan bir yazılım savunma katmanıdır**  
+- Hedef: 
+  - Görev kilitlenmesi  
+  - Sonsuz döngü  
+  - Stack taşması  
+  - Hatalı pointer kullanımı gibi sorunları **erken yakalamak ve müdahale etmektir**  
+
+---
+
+## Temel Teknikler
+
+### 1. Watchdog Timer (WDT)
+
+- Sistem periyodik olarak **watchdog beslemesi yapar**  
+- Eğer görev düzgün çalışmazsa ve **beslenmezse → sistem otomatik reset alır**  
+
+```c
+// FreeRTOS'ta watchdog örneği (pseudo-code)
+for (;;)
+{
+    refresh_watchdog(); // Her görev döngüsünde çağrılır
+    vTaskDelay(pdMS_TO_TICKS(100));
+}
+```
+
+---
+
+### 2. Stack Overflow Protection
+
+- FreeRTOS’ta `configCHECK_FOR_STACK_OVERFLOW` makrosu ile etkinleştirilir  
+- Her görev için ayrılan stack alanı izlenir  
+- Taşma varsa özel **hook fonksiyonu** devreye girer  
+
+```c
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
+{
+    // Logla, LED yak, sistem resetle vs.
+}
+```
+
+---
+
+### 3. Memory Corruption Kontrolü
+
+- `malloc` / `free` işlemleri **izlenmeli**  
+- Valgrind / AddressSanitizer gibi araçlarla test yapılmalı  
+- **Sentinel değeri (magic number)** kullanılarak veri alanları korunmalı  
+
+---
+
+### 4. Assert ve Hata Yönetimi
+
+- `configASSERT` ile runtime kontroller yapılır  
+- Null pointer, beklenmedik durumlar erken fark edilir  
+
+```c
+configASSERT(xSemaphore != NULL); // Null kontrolü
+```
+
+- Assertion hatalarında sistem **güvenli moda** alınabilir  
+
+---
+
+### 5. Fail-Safe Mode
+
+- Kritik hata algılandığında:
+  - Geri bildirim sağlanır (UART log, LED blink)  
+  - Sistem minimum işlevle devam eder  
+  - Watchdog resetine **bilinçli izin verilir**  
+
+---
+
+## Watchdog Entegrasyonu
+
+| Seviye       | İzlenen Durumlar                         |
+|--------------|-------------------------------------------|
+| Görev        | Tetiklenmeyen görev, kilitlenme           |
+| ISR          | ISR süresinin limit dışı olması           |
+| Zamanlayıcı  | Cron task, zaman aşımı, timeout           |
+| Donanım      | UART, ADC, GPIO tepkisizliği              |
+
+---
+
+### Donanım Bazlı Watchdog (Zynq Örneği)
+
+- Zynq-7000 üzerinde **System Watchdog Timer (SWDT)** mevcuttur  
+- PS (Processing System) tarafında konfigüre edilir  
+- PL (Programmable Logic) tarafı da tetikleyici olabilir  
+
+```c
+XWdtPs_SetControlValue(&WdtInstance, XWDTPS_CRR, 0x76); // Watchdog beslemesi
+```
+
+---
+
+## İpuçları
+
+- Watchdog süresi çok kısa ayarlanırsa → **yanlış resetler** oluşabilir  
+- Stack/heap taşması gibi yazılımsal hatalar **donanımı etkilemeden önce** yakalanmalıdır  
+- **Watchdog**, FDIR sisteminin **çekirdeğidir**  
+- Hatalı bir watchdog tasarımı, sistemi **gereksiz yere resetleyebilir** → test kritik önem taşır  
