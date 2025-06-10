@@ -2033,3 +2033,220 @@ char c = uart_receive();
 - I2C adres çakışmalarına karşı dikkatli olunmalıdır  
 
 
+# Donanım Tabanlı Zamanlama: Timer, Counter, PWM
+
+## Genel Bakış
+
+- Gerçek zamanlı uygulamalarda yazılım gecikmeleri yeterli değildir  
+- **Timer**, **Counter** ve **PWM**, donanım bazlı zamanlama bileşenleridir  
+- Kullanım alanları:
+  - PWM sinyali üretimi  
+  - ISR (Interrupt) ile görev zamanlama  
+  - Frekans ölçme, darbe sayma  
+
+---
+
+## Timer Nedir?
+
+- Belirli aralıklarla sayan ve taşma (overflow) durumunda **kesme (ISR)** üreten sayaçtır  
+
+### Kullanım Alanları
+
+- Periyodik görevler (örneğin her 1ms LED toggle)  
+- Watchdog uygulamaları  
+- Yazılım zamanlayıcılarının altyapısı  
+
+```c
+void TMR_IRQHandler() {
+   // Timer ISR fonksiyonu
+   toggle_led();
+}
+```
+
+---
+
+## Counter Nedir?
+
+- **Harici bir sinyalin darbe sayısını** takip eden donanımdır  
+- Timer'dan farkı: saat kaynağı dışarıdan gelir (örneğin encoder sinyali)  
+
+### Kullanım Alanları
+
+- RPM, frekans ölçümü  
+- Encoder okuma  
+- Pulse sayma (örneğin gaz akışı, jeton algılama)
+
+```c
+if (counter_value >= 1000)
+   calculate_speed();
+```
+
+---
+
+## PWM (Pulse Width Modulation)
+
+- Dijital pin üzerinden **analog benzeri kontrol** sağlar  
+- Sabit frekanslı, **ayarlanabilir duty cycle**’a sahip kare dalga üretir  
+
+### Kullanım Alanları
+
+- LED parlaklık ayarı  
+- Motor hız kontrolü  
+- Ses üretimi / analog sinyal sentezi  
+
+```c
+set_pwm_duty_cycle(75); // %75 duty cycle
+```
+
+---
+
+## Donanım Entegrasyonu
+
+| Zamanlayıcı Türü | Kullanım                              |
+|------------------|----------------------------------------|
+| **Timer**        | ISR üretme, gecikme, watchdog          |
+| **Counter**      | Darbe sayma, frekans ölçme             |
+| **PWM**          | Motor/LED kontrolü, sinyal üretimi     |
+
+### Zynq Sistemlerinde
+
+- **PS tarafı:** Triple Timer Counter (TTC), System Watchdog Timer  
+- **PL tarafı:** Timer/Counter/PWM için özel IP çekirdekleri oluşturulabilir  
+
+---
+
+## FreeRTOS ile Entegre Kullanım
+
+- Donanım timer’ı → ISR üretir  
+- ISR → Queue, Notification ile görev tetikleyebilir  
+
+```c
+void Timer_ISR_Handler(void)
+{
+    xTaskNotifyFromISR(TaskHandle, 0, eNoAction, NULL);
+}
+```
+
+- Yazılım zamanlayıcılara göre daha kararlıdır, jitter düşüktür  
+
+---
+
+## İpuçları
+
+- **Timer overflow süresi** iyi hesaplanmalı:  
+  \[
+  \text{Zaman} = \frac{\text{MaxCount} \times \text{Prescaler}}{\text{ClockFrequency}}
+  \]
+
+- **PWM çözünürlüğü** önemli: 8-bit (256 seviye), 10-bit (1024 seviye) vs.  
+- **Counter kullanımında** debouncing (fiziksel titreşim filtreleme) gerekir  
+- ISR ile çalışıldığında:
+  - ISR süresi kısa tutulmalı  
+  - Öncelikler dikkatle belirlenmeli  
+
+
+# GPIO, Interrupt, DMA Kullanımı ve Donanım Etkileşimi
+
+## GPIO (General Purpose Input/Output)
+
+- Mikrodenetleyici veya FPGA ile dış dünya ile dijital iletişim sağlar  
+- Her pin **giriş (input)** veya **çıkış (output)** olarak yapılandırılabilir
+
+### Kullanım Senaryoları
+
+- Buton okuma  
+- LED kontrolü  
+- Röle tetikleme  
+- Fault/Status sinyali üretme  
+
+```c
+gpio_set_output(LED_PIN);
+gpio_write(LED_PIN, HIGH);
+```
+
+---
+
+## Interrupt (Kesme Mekanizması)
+
+- Donanım kaynaklı olaylarda CPU’nun normal akışı kesilerek **ilgili ISR fonksiyonu** çalıştırılır  
+- Polling yerine **etkin, düşük gecikmeli** yöntemdir  
+
+### Donanım Tetikleyicileri
+
+- GPIO (ör: butona basma)  
+- Timer taşması  
+- UART veri geldiğinde  
+- ADC tamamlandığında  
+
+---
+
+## ISR (Interrupt Service Routine)
+
+```c
+void GPIO_IRQHandler(void)
+{
+    if (gpio_read(BUTTON_PIN)) {
+        toggle_led(); // kısa işlem önerilir
+    }
+}
+```
+
+---
+
+## FreeRTOS ile ISR Entegrasyonu
+
+- ISR içinde **queue/message** gönderilerek görevler tetiklenir  
+
+```c
+BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+xTaskNotifyFromISR(taskHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+```
+
+---
+
+## DMA (Direct Memory Access)
+
+- CPU yerine donanımın doğrudan **bellekten belleğe** veya **periferikten belleğe** veri taşımasını sağlar  
+- CPU yükünü azaltır, **kesintisiz yüksek hızlı veri aktarımı** sağlar  
+
+### Kullanım Senaryoları
+
+| Periferik | Uygulama                                  |
+|-----------|--------------------------------------------|
+| UART / SPI | Büyük blok veri aktarımı (TX/RX)           |
+| ADC        | Sürekli örnek alma, buffer’a aktarma       |
+| Mem2Mem    | Bellek kopyalama, video/frame veri taşıma  |
+
+```c
+dma_start(source, destination, size); // pseudo-code
+```
+
+---
+
+## Donanım Tabanlı Etkileşim Özeti
+
+| Bileşen   | Açıklama                                        |
+|-----------|-------------------------------------------------|
+| GPIO      | Dijital sinyal kontrolü                         |
+| Interrupt | Gerçek zamanlı olay tetikleme                   |
+| DMA       | CPU’dan bağımsız, yüksek hızlı veri aktarımı    |
+
+### FPGA Üzerinde
+
+- **PL → PS** GPIO bağlantısı için: `AXI GPIO` IP çekirdeği kullanılır  
+- **DMA → PL tarafı** üzerinden veri çekmek için `AXI DMA` çekirdeği kullanılır  
+- **Interrupt** sinyalleri PL’den PS’e `IRQ_F2P` sinyali ile bağlanır
+
+---
+
+## İpuçları
+
+- ISR içinde sadece **kısa ve kritik işlemler** yapılmalı  
+- ISR uzun sürerse → sistem kararsızlaşır, zamanlama bozulur  
+- DMA kullanırken:
+  - **Cache uyumu** (flush/invalidate) kontrol edilmeli  
+  - **Alignment** (belirli bellek hizalamaları) sağlanmalı  
+- **GPIO ISR’lerinde debounce** işlemi yazılım/donanım tabanlı yapılmalı  
+- RTOS entegrasyonlu projelerde:  
+  - ISR → task notification / queue → task yapısıyla ayrım yapılmalı  
+
