@@ -266,3 +266,76 @@ void button_isr_handler() {
 - Software timer callback fonksiyonları yalnızca **tetikleyici** olmalı, uzun işlem yapılmamalı  
 - ISR sonrasında `portYIELD_FROM_ISR()` ile gerekli durumlarda context switch tetiklenir  
 
+
+
+# FDIR (Fault Detection, Isolation & Recovery)
+
+## FDIR Nedir?
+
+- **Fault Detection**: Hatanın tespiti  
+- **Isolation**: Hatayı sınırlama ve etkisizleştirme  
+- **Recovery**: Sistemin kendini toparlaması veya güvenli moda geçmesi  
+
+> Özellikle uzay, savunma, medikal gibi **kritik sistemlerde** hayati öneme sahiptir.
+
+---
+
+## 1. Fault Detection (Hata Tespiti)
+
+- **Watchdog Timer**  
+- **CRC**, **Checksum**  
+- **Sensor değerlerinin sınır kontrolü**  
+- **Memory pattern testi**  
+- **ISR çağrı frekansının izlenmesi (anomaliler)**  
+
+---
+
+## 2. Fault Isolation (Yalıtım)
+
+- Hatalı görevi `vTaskSuspend()` ile durdurmak  
+- Hatalı modülü sistemden ayırmak  
+- Sadece etkilenmiş bölümü resetlemek (örneğin yalnızca R5 core)  
+- **Event Group** ile sadece ilgili görevleri tetiklememek  
+
+---
+
+## 3. Fault Recovery (Kurtarma)
+
+- Görevi yeniden başlatmak (`xTaskCreate`, `vTaskResume`)  
+- **Yazılım sıfırlama** (`NVIC_SystemReset()`, özel `system_reset()` fonksiyonu)  
+- **Safe Mode**: Minimum işlevlerle devam etmek  
+- **Boot Flag** ile farklı boot davranışı başlatmak (ör. recovery image)
+
+---
+
+## Watchdog Nedir?
+
+- Sistem belirli sürede tepki vermezse reset atan zamanlayıcıdır  
+- **Donanımsal (HW WDT)** ve **yazılımsal (SW WDT)** versiyonları bulunur  
+
+### Basit Watchdog Kullanımı (Pseudocode)
+
+```c
+while(1) {
+    refresh_watchdog();
+    do_work();
+}
+```
+
+---
+
+## Tipik FDIR Yapısı
+
+```
+[Sensör] → [Hata Tespiti] → [Hatalı Görev?] → [İzolasyon] → [Safe Mode?] → [Reset veya Kurtarma]
+```
+
+---
+
+## İpuçları
+
+- FDIR mekanizması **her görevde izleme (monitoring)** yapmalıdır  
+- FreeRTOS ile periyodik **denetim görevleri** oluşturulabilir  
+- Sorun tekrar ediyorsa **system reset** gerekebilir  
+- **Critical section**’lar hatayı maskeleyebilir: dikkatli tasarlanmalıdır  
+
