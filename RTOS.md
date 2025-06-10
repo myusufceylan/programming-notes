@@ -339,3 +339,86 @@ while(1) {
 - Sorun tekrar ediyorsa **system reset** gerekebilir  
 - **Critical section**’lar hatayı maskeleyebilir: dikkatli tasarlanmalıdır  
 
+
+# EEPROM, FRAM, Boot Flag, Safe Mode
+
+## EEPROM Nedir?
+
+- **Electrically Erasable Programmable Read-Only Memory**  
+- Kalıcı bellektir (güç kesilse de veri korunur)  
+- Genellikle birkaç KB – yüzlerce KB kapasite  
+- Yazma işlemi yavaştır (~ms mertebesi)  
+- Sınırlı yazma ömrü vardır (~1 milyon yazma)  
+
+### Kullanım Örnekleri
+
+- Konfigürasyon ayarları  
+- Seri numaralar  
+- Kayıt defteri (log)  
+
+---
+
+## FRAM Nedir?
+
+- **Ferroelectric RAM**  
+- EEPROM'dan çok daha hızlıdır (~ns – µs)  
+- Enerji kesilse bile veri korunur  
+- Sınırsıza yakın yazma ömrü  
+- Genellikle I2C veya SPI ile haberleşir  
+
+### FRAM vs EEPROM
+
+| Özellik       | EEPROM        | FRAM            |
+|---------------|---------------|-----------------|
+| Hız           | Yavaş         | ✅ Hızlı         |
+| Yazma Ömrü    | Sınırlı       | ✅ Sonsuz        |
+| Dayanıklılık  | Orta          | ✅ Yüksek        |
+| Fiyat         | ✅ Ucuz       | Daha pahalı     |
+
+---
+
+## Boot Flag Nedir?
+
+- Sistem yeniden başladığında **hangi modu çalıştıracağını belirlemek için kullanılan bayraktır**  
+- Genellikle **EEPROM**, **FRAM** veya **RTC backup register** içine yazılır  
+
+### Kullanım Senaryosu
+
+```c
+// Safe mode'a geçmek için flag set edilir
+eeprom_write(BOOT_FLAG_ADDR, SAFE_MODE_FLAG);
+NVIC_SystemReset();
+
+// Bootloader başlangıcında:
+if (eeprom_read(BOOT_FLAG_ADDR) == SAFE_MODE_FLAG) {
+    jump_to_safe_mode();
+}
+```
+
+---
+
+## Safe Mode Nedir?
+
+- Sistem, hata sonrası **kritik görevlerle sınırlı şekilde çalışmaya devam eder**  
+- Genellikle:
+  - Minimum sayıda görev  
+  - LED/GPIO ile durum bildirimi  
+  - Sensörlerin devre dışı bırakılması  
+  - Haberleşme ile hata bildirimi  
+
+### Tipik Safe Mode Özellikleri
+
+| Özellik         | Normal Mod        | Safe Mode            |
+|------------------|-------------------|------------------------|
+| Görev sayısı     | Tüm görevler      | Yalnızca kritik        |
+| I/O              | Açık              | Kısıtlı                |
+| Veri kaydı       | Açık              | Devre dışı             |
+| Watchdog         | Etkin             | ✅ Daha kısa sürede     |
+
+---
+
+## İpuçları
+
+- Boot flag işlemleri **atomik** olmalıdır (yarım kalırsa sistem brick olabilir)  
+- Safe mode sadece geçici bir çözüm değil, **denetimli geri yükleme** sağlayabilmelidir  
+- EEPROM / FRAM erişimleri, **mutex** ile korunmalıdır (özellikle FreeRTOS altında)  
