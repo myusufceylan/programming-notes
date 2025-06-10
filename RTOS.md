@@ -1720,3 +1720,101 @@ if (check_power_good() && check_clk_lock()) {
 - **BOD eşikleri** donanımda ayarlanabilir olmalı ve test edilmelidir  
 - **Startup logic**, FDIR ve watchdog ile **entegre bir yapı** olarak düşünülmelidir  
 - BOD olayları yazılımda **loglanmalı** ve gerekirse **uygulama davranışı değiştirilmelidir**  
+
+
+# Bootloader Temelleri ve Çoklu Firmware Yönetimi
+
+## Bootloader Nedir?
+
+- Sistem açıldığında ilk çalışan yazılımdır  
+- Görevleri:
+  - Donanım hazırlığı (clock, bellek, çevre birimleri)  
+  - Uygun firmware'i seçmek ve yüklemek  
+  - Gerekirse **güncelleme kontrolü** yapmak  
+- **Bootloader → firmware ayrımı**, sistemin kararlılığını ve güvenliğini artırır  
+
+---
+
+## Bootloader Türleri
+
+| Tür                | Açıklama                                                |
+|--------------------|----------------------------------------------------------|
+| FSBL               | Donanım üreticisinin sunduğu temel ilk açılış kodu       |
+| Custom Bootloader  | Projeye özel yazılmış yükleme ve kontrol mantığı         |
+| OTA Bootloader     | Uzaktan güncelleme (over-the-air) destekleyen yapılar    |
+
+---
+
+## Bootloader Adımları (Genel)
+
+1. Power-on Reset  
+2. Donanım başlatma (PLL, DRAM, IO ayarları)  
+3. Flash / SD / eMMC üzerinden firmware kontrolü  
+4. **Hash / CRC** kontrolü  
+5. Firmware’in RAM’e kopyalanması  
+6. **Ana uygulamaya sıçrama (jump to application)**  
+
+---
+
+## Çoklu Firmware Yapısı
+
+- Aşağıdaki gibi birden fazla imaj tutulur:
+  - `firmware_current.bin`
+  - `firmware_backup.bin`
+  - `golden_image.bin`  
+- Seçim kriterleri:
+  - **Versiyon kontrolü**
+  - **Hata sayacı** (watchdog reset sonrası)
+  - **CRC başarısızlığı**
+  - Önceki boot başarısızlığı
+
+```c
+if (is_firmware_valid(current)) {
+    jump_to(current);
+} else if (is_firmware_valid(backup)) {
+    jump_to(backup);
+} else {
+    jump_to(golden);
+}
+```
+
+---
+
+## FreeRTOS ile Bootloader
+
+- Bootloader, FreeRTOS uygulamasından **ayrı bir bare-metal yazılım** olabilir  
+- .bin dosyası RAM’e kopyalanır, ardından **function pointer** ile çalıştırılır  
+
+```c
+typedef void (*app_entry_t)(void);
+app_entry_t app_entry = (app_entry_t) 0x8000000;
+app_entry(); // Uygulama başlatılır
+```
+
+---
+
+## Boot Flags & Versiyonlama
+
+- EEPROM / FRAM içinde küçük bir alan ayrılır:  
+  - Son çalıştırılan firmware versiyonu  
+  - Boot durumu (başarılı / başarısız)  
+  - Güncelleme zamanı  
+  - Safe mode sayacı gibi durum bilgileri  
+
+---
+
+## Bootloader ve Güvenlik
+
+- **Firmware imza doğrulama** (RSA, SHA256 gibi)  
+- **CRC16/32** ile bütünlük kontrolü  
+- Flash üzerindeki alanların sınırlandırılması  
+- Read-only bölge tanımlanması (yazma koruması)  
+
+---
+
+## İpuçları
+
+- Bootloader, sistemin **en güvenilir yazılım katmanıdır** → test kritik önemdedir  
+- **Rollback desteği** olmadan güncelleme mekanizması eksiktir  
+- Watchdog ile **boot döngüsü tespiti (loop detection)** entegre edilmelidir  
+- Geliştirme sırasında boot süresi ve firmware geçişleri **loglanmalı ve analiz edilmelidir**  
