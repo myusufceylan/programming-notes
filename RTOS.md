@@ -422,3 +422,151 @@ if (eeprom_read(BOOT_FLAG_ADDR) == SAFE_MODE_FLAG) {
 - Boot flag işlemleri **atomik** olmalıdır (yarım kalırsa sistem brick olabilir)  
 - Safe mode sadece geçici bir çözüm değil, **denetimli geri yükleme** sağlayabilmelidir  
 - EEPROM / FRAM erişimleri, **mutex** ile korunmalıdır (özellikle FreeRTOS altında)  
+
+
+# AMP: Asymmetric Multiprocessing (Linux + RTOS)
+
+## AMP Nedir?
+
+- **Asimetrik Çoklu İşlem** yaklaşımıdır  
+- Farklı çekirdeklerde farklı işletim sistemleri çalıştırılır  
+- Örneğin: `Core 0 → Linux`, `Core 1 → FreeRTOS`  
+
+> Zynq-7000 gibi SoC'lerde (örneğin çift çekirdekli Cortex-A9) yaygın olarak kullanılır
+
+---
+
+## AMP ile SMP Farkı
+
+| Özellik           | AMP                                | SMP                         |
+|-------------------|-------------------------------------|------------------------------|
+| Çekirdekler       | Farklı işler yapar                  | Ortak işletim sistemi        |
+| İşletim Sistemleri| Farklı (Linux + RTOS)               | Aynı OS tüm çekirdeklerde    |
+| Bellek Kullanımı  | Kontrollü paylaşım / ayrılmış       | Ortak bellek                 |
+| Kullanım Amacı    | Gerçek zamanlı + genel amaçlı       | Genel amaçlı                 |
+
+---
+
+## Neden AMP?
+
+- **Gerçek zamanlı işlemleri Linux’ten izole etmek**  
+- **Güvenlik**: Bir OS çökse diğer etkilenmez  
+- **Performans**: FreeRTOS zaman kritik işleri, Linux kullanıcı arayüzü veya ağ yönetimi gibi işleri üstlenir  
+
+---
+
+## AMP Yapı Taşları
+
+- **Device Tree**  
+  - Hangi çekirdeğin Linux tarafından kullanıldığını belirtir  
+  - `cpu@1` gibi düğümler devre dışı bırakılabilir (`status = "disabled"`)  
+
+- **OpenAMP / RemoteProc / RPMsg**  
+  - **RemoteProc**: RTOS uygulamasını başlatır (ELF dosyasını yükler)  
+  - **RPMsg**: Linux ↔ RTOS arasında veri alışverişi sağlar (virtio tabanlı)  
+
+- **Shared Memory**  
+  - Linux ve RTOS’un birlikte kullandığı bellek bölgesi  
+  - Genelde OCM (On-Chip Memory) tercih edilir  
+
+---
+
+## Haberleşme: RPMsg ve Mailbox
+
+- **RPMsg (Remote Processor Messaging)**  
+  - Queue-benzeri yapı  
+  - İki çekirdek arasında yüksek seviyeli mesajlaşma
+
+- **Mailbox IP Core**  
+  - Donanım tetikleyici / interrupt mekanizması  
+
+### FreeRTOS Tarafında RPMsg Callback
+
+```c
+void rpmsg_recv_callback(void *payload, size_t len, void *priv, u32 src) {
+    process_message(payload);
+}
+```
+
+---
+
+## Boot Süreci (Zynq Örneği)
+
+```
+FSBL → U-Boot → Linux başlar → RemoteProc ile FreeRTOS (Core 1) başlatılır
+```
+
+---
+
+## İpuçları
+
+- RTOS çekirdeği için bellek tahsisinde **OCM (On-Chip Memory)** tercih edilmelidir  
+- Device Tree'de kullanılmayan CPU `status = "disabled"` olarak işaretlenmelidir  
+- **IRQ paylaşımı** ve interrupt yönetimi dikkatle tasarlanmalıdır  
+- Shared memory yapısı mutex/semaphore ile korunmalıdır (özellikle RPMsg üzerinde)  
+
+
+# ARM Cortex-R5 Mimarisi
+
+## Genel Özellikler
+
+- ARMv7-R mimarisine dayanır (R: Real-time)
+- Gerçek zamanlı sistemler için optimize edilmiştir
+- Zynq-7000 SoC gibi platformlarda Linux dışı çekirdek olarak kullanılır
+
+## Temel Özellikler
+
+| Özellik                  | Açıklama                             |
+|---------------------------|--------------------------------------|
+| Çekirdek Yapısı          | 32-bit RISC                         |
+| Clock Speed              | ~300 MHz – 600 MHz (SoC'e bağlı)   |
+| Gerçek Zamanlı Destek    | ✅ Var (deterministik)               |
+| Cache                    | ✅ I-Cache, D-Cache ayrı             |
+| TCM (Tightly Coupled Mem)| ✅ Düşük gecikmeli özel RAM alanı    |
+| Vectored Interrupt       | ✅ Hızlı ISR geçişi sağlar           |
+| MPU (Memory Protection)  | ✅ Bellek alanı koruması             |
+
+---
+
+## R5 vs A9 (Karşılaştırma)
+
+| Özellik         | Cortex-A9                  | Cortex-R5                  |
+|------------------|----------------------------|-----------------------------|
+| OS Desteği       | Linux, Android             | RTOS (FreeRTOS, baremetal) |
+| Cache            | Var                         | Var + TCM opsiyonu         |
+| Real-time        | ❌ Sınırlı                  | ✅ Deterministik            |
+| Kullanım Alanı   | UI, ağ, dosya sistemleri    | Kontrol, motor sürme, safety |
+
+---
+
+## Bellek Yapısı
+
+- **TCM (Tightly Coupled Memory)**: Gecikmesiz erişim, predictability yüksek
+- **OCM (On-Chip Memory)**: Paylaşımlı RAM, genelde 256 KB
+- **DDR**: Harici RAM (R5 tarafında kullanılabilir ama deterministik değil)
+
+---
+
+## Interrupt Sistemi
+
+- NVIC benzeri: Vectored interrupt controller
+- Interrupt latency çok düşüktür (~10–20 cycle)
+- ISR’lar `__attribute__((interrupt))` ile tanımlanabilir
+
+---
+
+## Yazılım Geliştirme
+
+- **Toolchain**: `arm-none-eabi-gcc`
+- **Geliştirme Ortamı**: Vitis, SDK, baremetal veya RTOS
+- **Debug**: Xilinx XSCT, OpenOCD, JTAG debugger
+
+---
+
+## İpuçları
+
+- R5 gerçek zamanlı görevler için idealdir (örneğin motor sürme)
+- TCM’e kod veya data atanması için linker script düzenlenmelidir
+- I-Cache ve D-Cache etkili ama predictability dikkat ister
+- R5’in bellek alanı Linux’ten izole edilmelidir (AMP senaryolarında)
+
