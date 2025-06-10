@@ -657,3 +657,95 @@ valgrind --leak-check=full ./my_app
 - FreeRTOS gibi sistemlerde GDB kullanımı için `-g` derleme flag’i zorunludur  
 - **Memory leak** şüphesinde Valgrind ile test yapılması önerilir  
 
+
+# CMake / Make: Derleme Süreci
+
+## Make Nedir?
+
+- Derleme sürecini tanımlayan basit otomasyon aracıdır  
+- `Makefile` ile hedefler (**targets**), kurallar (**rules**), bağımlılıklar (**dependencies**) tanımlanır  
+
+---
+
+### Basit Makefile Örneği
+
+```makefile
+main: main.o utils.o
+	$(CC) main.o utils.o -o main
+
+main.o: main.c
+	$(CC) -c main.c
+
+utils.o: utils.c
+	$(CC) -c utils.c
+```
+
+### Komutlar
+
+```bash
+make         # Varsayılan hedefi derler
+make clean   # Genellikle temizleme hedefi tanımlıdır
+```
+
+---
+
+## CMake Nedir?
+
+- Platformdan bağımsız, modern bir **derleme sistemi üreticisidir**  
+- `CMakeLists.txt` dosyası üzerinden **Makefile** veya **Ninja** gibi sistemler üretilir  
+
+---
+
+### Temel CMake Akışı
+
+```bash
+mkdir build && cd build
+cmake ..
+make
+```
+
+---
+
+### Basit CMakeLists.txt
+
+```cmake
+cmake_minimum_required(VERSION 3.10)
+project(MyApp C)
+
+set(SOURCES main.c utils.c)
+
+add_executable(my_app ${SOURCES})
+```
+
+---
+
+## Make vs CMake
+
+| Özellik          | Make                | CMake                          |
+|------------------|---------------------|---------------------------------|
+| Kullanım         | Doğrudan            | ✅ Üst katman (Make üretir)     |
+| Taşınabilirlik   | Düşük               | ✅ Platform bağımsız            |
+| Derleme Tanımı   | Elle                | ✅ Deklaratif, modüler          |
+| Büyük Proje Desteği | Karmaşık         | ✅ Kolay yönetilir              |
+
+---
+
+## Gömülü Sistemlerde CMake
+
+- Gömülü projelerde **toolchain file** ile çapraz derleme yapılır  
+
+```cmake
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_C_COMPILER arm-none-eabi-gcc)
+```
+
+- FreeRTOS, STM32, Zynq gibi sistemlerde yapı yönetimini kolaylaştırır  
+
+---
+
+## İpuçları
+
+- Küçük projelerde `Makefile` yeterlidir, büyük projelerde **CMake** tercih edilmelidir  
+- CMake ile **test**, **konfigürasyon**, **versiyon yönetimi** kolay entegre edilir  
+- **Out-of-source build** (build dizini ayrı) temiz derleme sağlar  
+- Derleme çıktılarında `-Wall`, `-O2`, `-g` gibi bayraklar kritik rol oynar  
