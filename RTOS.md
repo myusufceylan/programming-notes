@@ -183,3 +183,86 @@ while(1) {
 - Delay sırasında görev CPU’dan tamamen çekilir (low-power dostu)  
 - Periyodik görevlerde `vTaskDelayUntil()` kullanımı zamanlamayı sabit tutar  
 
+
+# Yazılım Zamanlayıcıları ve ISR Haberleşmesi
+
+## Yazılım Zamanlayıcısı (Software Timer) Nedir?
+
+- Belirli zaman aralıklarında çalışan **geri çağırım (callback)** fonksiyonudur  
+- RTOS tick’i ile çalışır, **donanım timer'ından bağımsızdır**  
+- Görev değildir; kendi içinde uzun işlem yapılmamalı, **tetikleyici rol** oynamalıdır  
+
+### Zamanlayıcı Oluşturma
+
+```c
+TimerHandle_t xTimer = xTimerCreate(
+    "MyTimer",
+    pdMS_TO_TICKS(1000),  // 1 saniyelik periyot
+    pdTRUE,               // pdTRUE = periyodik, pdFALSE = tek seferlik
+    NULL,
+    vTimerCallback        // Callback fonksiyonu
+);
+
+xTimerStart(xTimer, 0);
+```
+
+### Callback Fonksiyonu
+
+```c
+void vTimerCallback(TimerHandle_t xTimer) {
+    // Timer tetiklendiğinde yapılacak işlem
+}
+```
+
+---
+
+## ISR (Interrupt Service Routine) Nedir?
+
+- Donanımdan gelen sinyallerle tetiklenen özel fonksiyonlardır  
+- ISR içinde **kısa ve kesintisiz işlemler** yapılmalıdır  
+- **Görev başlatma/senkronizasyon işlemleri** yapılabilir, ama **bloklayıcı işlemler yapılmaz**  
+
+---
+
+## ISR'de Ne Yapılır?
+
+✅ **Uygun** İşlemler:
+- `xSemaphoreGiveFromISR()`
+- `xQueueSendFromISR()`
+- `xEventGroupSetBitsFromISR()`
+- `portYIELD_FROM_ISR()` ile context switch
+
+❌ **Uygun Olmayanlar:**
+- `vTaskDelay()`, `malloc()`, `printf()`, görev oluşturma (`xTaskCreate`)
+- Blocking çağrılar
+
+---
+
+### ISR'den Görev Tetikleme Örneği
+
+```c
+void button_isr_handler() {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(xButtonSemaphore, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+```
+
+---
+
+## Yazılım Timer mı ISR mı?
+
+| İhtiyaç                             | Önerilen Yapı                 |
+|-------------------------------------|-------------------------------|
+| Kesin zamanlı tekrar eden olaylar   | **Software Timer (RTOS)**     |
+| Donanımsal tetikleme (buton vs.)    | **ISR + Semaphore**           |
+| Donanım dışı zaman tetikleyicisi    | `vTaskDelay` / `DelayUntil`   |
+
+---
+
+## İpuçları
+
+- ISR içindeki tetikleme `FromISR` fonksiyonlarıyla yapılmalıdır  
+- Software timer callback fonksiyonları yalnızca **tetikleyici** olmalı, uzun işlem yapılmamalı  
+- ISR sonrasında `portYIELD_FROM_ISR()` ile gerekli durumlarda context switch tetiklenir  
+
