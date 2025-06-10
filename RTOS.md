@@ -956,3 +956,92 @@ ceedling test:all
 - Donanım arayüzleri (GPIO, UART) **soyutlanmalı**  
 - Her görev/fonksiyon için **code coverage** takibi yapılmalıdır  
 - **Mocklama ≠ Simülasyon** → yalnızca dış etkilerin taklididir, zaman davranışı içermez  
+
+
+# FPGA Sınıfları: Artix, Kintex, Virtex, Zynq
+
+## Neden Sınıflar Var?
+
+- Xilinx (AMD) FPGA’leri farklı uygulama ihtiyaçlarına göre sınıflandırmıştır:
+  - Performans
+  - Güç tüketimi
+  - Entegre özellikler (örneğin: işlemci çekirdeği, transceiver, DDR interface)
+
+---
+
+## Artix-7
+
+- **Düşük güç – orta performans**
+- Genellikle küçük/orta ölçekli gömülü sistemler için
+- IOT, endüstriyel kontrol, görüntü işleme uygulamalarında kullanılır
+
+| Özellik               | Artix-7                       |
+|------------------------|-------------------------------|
+| Güç Tüketimi           | ✅ Düşük                      |
+| Transceiver Desteği    | ❌ Yok                        |
+| DDR Desteği            | ❌ Sınırlı                    |
+| Hedef Kullanım         | Kamera arayüzü, küçük FPGA uygulamaları |
+
+---
+
+## Kintex-7
+
+- **Yüksek bant genişliği – orta güç tüketimi**
+- DSP ağırlıklı uygulamalar ve yüksek hızlı veri iletimi gereken yerler
+- Radar, iletişim, video kodlama
+
+| Özellik               | Kintex-7                     |
+|------------------------|-------------------------------|
+| Transceiver Desteği    | ✅ GTH / GTX                 |
+| DDR Desteği            | ✅ Var                       |
+| Güç Tüketimi           | Orta                         |
+| Hedef Kullanım         | Haberleşme, sinyal işleme    |
+
+---
+
+## Virtex-7
+
+- **En yüksek performans**
+- HPC, yüksek hızlı iletişim, veri merkezi çözümleri
+- Çok sayıda transceiver, büyük bellek ve dev logic alanı
+
+| Özellik               | Virtex-7                     |
+|------------------------|-------------------------------|
+| Transceiver Desteği    | ✅ En gelişmiş               |
+| Logic Kapasitesi       | ✅ En yüksek                 |
+| Güç Tüketimi           | Yüksek                       |
+| Hedef Kullanım         | Savunma, HPC, data center    |
+
+---
+
+## Zynq-7000 / Zynq UltraScale+
+
+- **FPGA + ARM SoC birleşimi**
+- FPGA kısmı (PL) + ARM işlemci (PS)
+- Heterojen sistemler: Linux + FPGA + RTOS aynı sistemde
+
+| Özellik                   | Zynq-7000                      |
+|----------------------------|--------------------------------|
+| ARM İşlemci                | ✅ Cortex-A9 (PS)              |
+| FPGA Bölümü                | ✅ Artix-7 sınıfı (PL)         |
+| DDR / DMA / UART           | ✅ ARM üzerinden kolay         |
+| Hedef Kullanım             | Gömülü Linux, kontrol sistemleri, video işleme |
+
+---
+
+## Sınıflar Arası Kıyaslama
+
+| Özellik       | Artix     | Kintex     | Virtex     | Zynq       |
+|---------------|-----------|------------|------------|------------|
+| Güç Tüketimi  | ✅ Düşük  | Orta       | ❌ Yüksek  | Orta       |
+| Performans    | Orta      | ✅ Yüksek  | ✅ En yüksek | Orta       |
+| Fiyat         | ✅ Ucuz   | Orta       | ❌ Pahalı  | Orta       |
+| ARM Çekirdek  | ❌        | ❌         | ❌         | ✅ Var     |
+
+---
+
+## İpuçları
+
+- Küçük projeler için **Artix**, gerçek zamanlı kontrol için **Zynq**, DSP için **Kintex**, HPC için **Virtex** uygundur  
+- Zynq sistemleri yazılım + donanım birlikte çalışmayı öğrenmek için idealdir  
+- Board seçiminde **power budget** ve **I/O ihtiyaçları** kritik önemdedir
