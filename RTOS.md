@@ -1915,3 +1915,121 @@ __firmware_end__   = 0x0802FFFF;
 - Güvenlik için bootloader ve uygulama **ayrı bölgelerde** olmalı  
 - Güncelleme sistemlerinde partition'ların üzerine yazma **engellenmelidir**  
 - Bellek yapısı, watchdog, CRC, bootloader ile **uyumlu ve entegre tasarlanmalıdır**  
+
+
+# Peripheral’lerle Düşük Seviye Haberleşme (SPI / I2C / UART)
+
+## Nedir?
+
+- Mikrodenetleyici ile dış dünya arasında **veri alışverişi sağlayan seri haberleşme protokolleridir**  
+- Tipik kullanım alanları:
+  - Sensör verisi okuma  
+  - EEPROM / FRAM erişimi  
+  - Harici cihazlarla (modüllerle) iletişim kurulması  
+
+---
+
+## SPI (Serial Peripheral Interface)
+
+- **Full-duplex**, hızlı ve senkron seri haberleşme protokolüdür  
+- 4 hat: `MOSI`, `MISO`, `SCLK`, `SS/CS`  
+- Master–Slave mimarisi kullanır  
+
+### Avantajlar
+
+- Yüksek hız (MHz seviyelerinde)  
+- Aynı anda veri gönderme ve alma (full-duplex)  
+
+### Dezavantajlar
+
+- Hat sayısı fazladır (en az 4 pin)  
+- Çoklu slave kontrolü için ekstra GPIO gerekir  
+
+```c
+// SPI örnek (pseudo-C)
+spi_select_device(SLAVE1);
+spi_transfer(0xAA);
+spi_deselect_device();
+```
+
+---
+
+## I2C (Inter-Integrated Circuit)
+
+- **Half-duplex**, düşük hızlı ama hat verimliliği yüksek protokol  
+- 2 hat: `SDA` (veri), `SCL` (clock)  
+- Her cihazın **adresle tanımlandığı** yapı  
+
+### Avantajlar
+
+- Az pin ile çok cihaz bağlanabilir (multi-drop)  
+- EEPROM, RTC, sıcaklık sensörleri gibi cihazlarda yaygın  
+
+### Dezavantajlar
+
+- Düşük hız (tipik 100kHz – 1MHz)  
+- Parazite karşı hassastır, kısa mesafede kullanılmalıdır  
+
+```c
+i2c_start();
+i2c_write(EEPROM_ADDRESS);
+i2c_write(REGISTER);
+i2c_write(DATA);
+i2c_stop();
+```
+
+---
+
+## UART (Universal Asynchronous Receiver/Transmitter)
+
+- **Asenkron seri haberleşme** protokolüdür  
+- 2 hat: `TX` (gönderme), `RX` (alma)  
+- Genellikle PC bağlantısı veya GPS modülleri ile iletişim için kullanılır  
+
+### Avantajlar
+
+- Basit yapı, düşük kaynak kullanımı  
+- PC ile kolay bağlantı (UART–USB çevirici ile)  
+
+### Dezavantajlar
+
+- Senkronizasyon yoktur → hata kontrol mekanizması zayıf  
+- Genelde 1:1 iletişim mümkündür  
+
+```c
+uart_send_string("Hello World\n");
+char c = uart_receive();
+```
+
+---
+
+## Donanım Tabanlı Kullanım
+
+- Mikrodenetleyicilerde **SPI, I2C, UART** modülleri donanımsal olarak entegredir  
+- Register seviyesi konfigürasyon mümkündür  
+- FreeRTOS ile:
+  - Görev temelli haberleşme  
+  - Queue kullanımı ile TX/RX aktarımı  
+  - ISR tabanlı veri alımı  
+
+---
+
+## Hata Yönetimi
+
+| Protokol | Yaygın Hatalar                      |
+|----------|--------------------------------------|
+| SPI      | CS yanlış seçimi, senkron kaybı      |
+| I2C      | NACK, timeout, kısa devre           |
+| UART     | Framing error, overrun, parity hatası |
+
+---
+
+## İpuçları
+
+- **SPI** hızlıdır → ADC, DAC, display gibi cihazlar için idealdir  
+- **I2C**, çoklu cihaz bağlantısı için uygundur ama **kısa mesafe** önerilir  
+- **UART**, debug, CLI arayüzü ve loglama için en pratik çözümdür  
+- ISR (Interrupt) kullanımı, CPU yükünü azaltır  
+- I2C adres çakışmalarına karşı dikkatli olunmalıdır  
+
+
