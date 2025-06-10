@@ -1363,3 +1363,175 @@ assign data_out = data_in ^ lfsr_value;
 - Donanım sistemlerinde **LFSR tercih edilir**, düşük kaynak kullanır  
 - Scrambling varsa, **descrambling** aynı algoritmayla yapılmalıdır  
 - UART gibi düşük hızlı protokollerde gerekmez, ancak **yüksek hızlı veri yollarında zorunludur**  
+
+
+# ECC (Error Correction Code) ile Bellek Güvenliği
+
+## ECC Nedir?
+
+- **Bellek üzerindeki bit hatalarını algılayan ve düzelten** sistemdir  
+- Genellikle **RAM, cache, register file** gibi kritik bellek bloklarında kullanılır  
+- Hata kaynakları:
+  - **SEU (Single Event Upset)** → kozmik ışın, EMI  
+  - **Bit-flip** → sıcaklık, voltaj dalgalanması, zamanla yıpranma  
+
+---
+
+## ECC Türleri
+
+| Tür         | Açıklama                                               |
+|-------------|--------------------------------------------------------|
+| SEC         | Single Error Correction                                |
+| SEC-DED     | Single Error Correction, Double Error Detection        |
+| Chipkill    | Çoklu bellek çipi üzerinden hata düzeltme              |
+| Reed-Solomon| Flash belleklerde yaygın, çok bitli hata düzeltme için |
+
+---
+
+## ECC Nasıl Çalışır?
+
+- **Yazma sırasında**: Veriyle birlikte **kontrol bitleri** hesaplanır  
+- **Okuma sırasında**: Kontrol bitleri ile karşılaştırma yapılır  
+- Hata varsa:
+  - **1 bit**: Düzeltilebilir  
+  - **2+ bit**: Tespit edilir ama düzeltilemez → uyarı verilir  
+
+### Örnek (SEC-DED)
+
+| Veri (8 bit) | ECC (5 bit) |
+|--------------|-------------|
+| `11010011`   | `10101`     |
+
+---
+
+## ECC Bellek Donanımı
+
+- **ECC destekli RAM** gerekir (ek parity pinleri içerir)  
+- **ECC destekli işlemci/mikrodenetleyici** (örn. ARM Cortex-R5, bazı R7)  
+- **ECC destekli FPGA bellek blokları** (BRAM, URAM)  
+
+### Örnek (Verilog - BRAM ECC)
+
+```verilog
+// Vivado IP: Block Memory Generator
+// ECC destek opsiyonu: "Enable Error Correction"
+parameter C_USE_ECC = 1;
+```
+
+---
+
+## ECC ve Zynq
+
+### Zynq-7000
+
+- **PL (Programmable Logic)** kısmındaki BRAM için ECC vardır  
+- **PS (Processing System)** kısmındaki OCM ECC desteklemez  
+
+### Zynq UltraScale+
+
+- **DDR** ECC destekler  
+- **OCM** ECC destekler (kontrol register’ları üzerinden yapılandırılır)  
+
+---
+
+## Yazılımsal ECC Kullanımı
+
+- Bazı sistemlerde ECC **yazılımla yapılabilir**, fakat yavaştır  
+- Genelde **donanım tabanlı ECC** tercih edilir  
+
+---
+
+## ECC ile İlgili Terminoloji
+
+| Terim      | Anlamı                                            |
+|------------|---------------------------------------------------|
+| Hard error | Kalıcı donanım hatası                             |
+| Soft error | Geçici SEU / EMI kaynaklı hata                    |
+| Scrubbing  | Arka planda ECC ile sürekli veri doğrulama işlemi |
+| Syndrome   | ECC sonucu hesaplanan hata durumu / kodu         |
+
+---
+
+## İpuçları
+
+- ECC, **yüksek güvenilirlik** gerektiren sistemlerde tercih edilir  
+- ECC aktifken **performans kaybı** olabilir → sistem gereksinimlerine göre değerlendirilmelidir  
+- **ECC logları izlenmeli**, FDIR ve watchdog ile entegre edilmelidir  
+- **ECC tek başına yeterli değildir** → yedeklilik (redundancy) ve izleme mekanizmalarıyla birlikte kullanılmalıdır  
+
+
+# System Hardening: Fiziksel ve Elektronik Sertlik
+
+## Tanım
+
+- **System Hardening**, bir gömülü sistemin çevresel, fiziksel ve elektromanyetik (EMI/EMC) gibi zorlu koşullara dayanıklı hale getirilmesidir.
+- Sadece yazılım değil, **donanım altyapısı da güçlendirilir**.
+- Amaç: Kararlılık, güvenlik, uzun süreli çalışma.
+
+---
+
+## Neden Gerekli?
+
+- Savunma, uzay, medikal sistemler gibi **kritik alanlarda**:
+  - Radyasyon
+  - Sıcaklık/soğuk
+  - Titreşim
+  - Elektromanyetik girişim
+  - Fiziksel sabotaj
+
+---
+
+## Sertlik Türleri
+
+| Sertlik Tipi             | Açıklama                                              |
+|--------------------------|--------------------------------------------------------|
+| Fiziksel Hardening       | PCB kaplama, konnektör koruma, mekanik sağlamlık      |
+| Termal Hardening         | Soğutma, ısıya dayanıklı malzeme, fan, heatsink       |
+| Radyasyon Sertliği       | SEU dayanımlı FPGA (Radiation-Hardened, RHBD)         |
+| EMI/EMC Hardening        | RF ekranlama, filtreleme, metal kasa, ferrit boncuk    |
+| Elektriksel Sertlik      | ESD, overvoltage, brown-out koruması                  |
+
+---
+
+## Donanımsal Teknikler
+
+- **Conformal Coating**: PCB’yi koruyucu şeffaf katmanla kaplamak
+- **Ground Plane**: EMI’yi bastırmak için çok katmanlı PCB’lerde zemin düzlemi
+- **TVS Diyotları**: Gerilim ani sıçramalarına karşı koruma (ESD)
+- **Shielded Cable**: RF girişimini önlemek için metal kaplı kablolar
+- **Power Filter**: Güç hattındaki bozulmaları temizlemek için LC filtre
+
+---
+
+## Radyasyon Sert FPGA Örnekleri
+
+| Marka   | Model                      | Özellik                     |
+|---------|----------------------------|-----------------------------|
+| Xilinx  | Virtex-5QV                 | Radiation-tolerant (military) |
+| Microsemi | RTG4, RTAX                | Rad-Hard FPGA               |
+
+---
+
+## Sistemik Önlemler
+
+- Watchdog + FDIR + ECC üçlüsü entegre çalışmalı
+- Sistem hatasında safe mode veya reset mekanizması aktif olmalı
+- Harici voltaj koruma entegreleri (eFuse, overvoltage protection)
+
+---
+
+## Yazılımda Sertlik Destekleri
+
+- Stack overflow kontrolü
+- Heap sınır kontrolü
+- Critical section yönetimi
+- Bellek sızıntısı denetimi (valgrind, unit test)
+
+---
+
+## İpuçları
+
+- Sistem sertliği sadece donanımla değil, **bütünleşik sistem mühendisliğiyle** sağlanır  
+- Fiziksel hardening, yazılım sertliğiyle birlikte düşünülmelidir  
+- Geliştirilen ürün için kullanılacak ortam (hava, deniz, askeri) **baştan tanımlanmalı**  
+- Gereksiz koruma → maliyet ve güç tüketimini artırır → denge gerekir
