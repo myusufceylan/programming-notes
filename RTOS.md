@@ -749,3 +749,93 @@ set(CMAKE_C_COMPILER arm-none-eabi-gcc)
 - CMake ile **test**, **konfigürasyon**, **versiyon yönetimi** kolay entegre edilir  
 - **Out-of-source build** (build dizini ayrı) temiz derleme sağlar  
 - Derleme çıktılarında `-Wall`, `-O2`, `-g` gibi bayraklar kritik rol oynar  
+
+
+# CI / CD: Gömülü Sistemlerde DevOps Yaklaşımı
+
+## Tanımlar
+
+- **CI (Continuous Integration)**:  
+  Her kod değişikliğinde otomatik **test** ve **derleme** sürecidir  
+
+- **CD (Continuous Delivery / Deployment)**:  
+  - **Delivery**: Testlerden geçmiş sürümün yayınlamaya hazır hale getirilmesi  
+  - **Deployment**: Yazılımın otomatik olarak hedef cihaza yüklenmesi  
+
+---
+
+## Neden Gömülü Sistemlerde CI/CD?
+
+- Firmware değişiklikleri sistem kararlılığını bozabilir  
+- Donanıma özel test ve simülasyon gereklidir  
+- CI/CD ile insan hatası azaltılır, sürüm yönetimi kolaylaşır  
+- Süreçler otomatikleştirilerek **verimlilik ve kalite** artırılır  
+
+---
+
+## Tipik CI/CD Adımları
+
+1. **Kod Push** (`git push` ile tetiklenir)  
+2. **Otomatik Derleme** (`make`, `cmake`, `arm-none-eabi-gcc`)  
+3. **Statik Kod Analizi** (Cppcheck, SonarQube, Clang-Tidy)  
+4. **Birim Testleri** (Unity, Ceedling, GoogleTest)  
+5. **Firmware Paketleme** (hex, bin, elf üretimi)  
+6. **Deploy / Programlama** (JTAG, OTA, UART üzerinden yükleme)  
+
+---
+
+## Araçlar
+
+| Amaç              | Araçlar                            |
+|-------------------|-------------------------------------|
+| Kaynak Kontrolü   | Git, GitHub, GitLab                |
+| CI Motoru         | GitHub Actions, GitLab CI, Jenkins |
+| Derleme           | Make, CMake, GCC, arm-none-eabi    |
+| Test              | Unity, Ceedling, GoogleTest        |
+| Statik Analiz     | Cppcheck, Clang-Tidy               |
+| Otomasyon         | Python, Bash, Docker               |
+
+---
+
+## Gömülü CI/CD Pipeline Örneği (GitHub Actions)
+
+```yaml
+name: Build and Test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install toolchain
+        run: sudo apt-get install gcc-arm-none-eabi
+
+      - name: Build firmware
+        run: make all
+
+      - name: Run tests
+        run: make test
+```
+
+---
+
+## Zorluklar ve Çözümler
+
+| Zorluk                   | Çözüm                                   |
+|--------------------------|------------------------------------------|
+| Donanım gereksinimi      | Donanım simülasyonu / emulator           |
+| Çapraz derleyici kurulumu| Docker konteynerleri ile çözüm          |
+| Sürüm takibi ve rollback | Git tag / release yönetimi              |
+| Programlama (flash/UART) | CLI tabanlı otomasyon araçları          |
+
+---
+
+## İpuçları
+
+- **Docker** kullanımı, build ortamlarının tutarlılığını garanti eder  
+- **Mock GPIO** gibi tekniklerle testler simülasyon ortamında yapılabilir  
+- **Versiyon numaraları** otomatik üretilebilir (`git describe`, `build ID`)  
+- Donanım testleri için **hardware-in-the-loop** entegrasyonu planlanabilir  
