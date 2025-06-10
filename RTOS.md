@@ -1195,3 +1195,77 @@ float temp = read_xadc_temperature(); // Örnek pseudo kod
 - Sıcaklık aralığı uygun olsa bile **soğutma tasarımı** yapılmalıdır  
 - **Gerçek zamanlı sıcaklık takibi** ve **watchdog** entegrasyonu ile **FDIR** güçlendirilebilir  
 - Military ve automotive-grade FPGA’ler **daha pahalı** ve **uzun tedarik sürelidir**  
+
+
+# Golden Image: Güvenli Boot ve Geri Dönüş Yapısı
+
+## Tanım
+
+- **Golden Image**, FPGA ya da gömülü sistemin **her zaman çalışacağı garanti edilen yedek firmware’idir**  
+- Sistem güncellenirken veya sorun oluştuğunda geri dönülebilecek **emniyetli yedek** olarak kullanılır  
+
+---
+
+## Neden Golden Image?
+
+- Yeni firmware **hatalı olabilir** (boot başarısız, CRC hatası, donma...)  
+- Boot sırasında sistemin **brick** olmasını önler  
+- Güvenilir bir **geri dönüş yolu** sağlar  
+- Özellikle uçuş kontrol sistemleri, savunma elektroniği gibi **kritik uygulamalarda zorunludur**  
+
+---
+
+## Golden Image Yapısı (Zynq Örneği)
+
+| Boot Aşaması              | Açıklama                                      |
+|---------------------------|-----------------------------------------------|
+| FSBL (First Stage Bootloader) | Her zaman **Golden Image** ile başlar        |
+| SD/eMMC kontrolü          | Güncel image kontrol edilir                   |
+| CRC / Signature Check     | Uygulama doğruluğu test edilir                |
+| Başarısızsa               | Otomatik olarak **Golden Image** çalıştırılır |
+
+---
+
+## Golden Image Nerede Tutulur?
+
+### Zynq İçin
+
+- **QSPI Flash**’in ilk 1 MB’lık bölümü → `BOOT.BIN` (golden image)  
+- Diğer bölümler → Güncel firmware (fallback için)
+
+### Diğer Sistemler
+
+- STM32, LPC vb. sistemlerde:
+  - **Internal Flash** içinde özel alan ayrılır  
+  - Bootloader, **flash bank switching** ile çalışır  
+
+---
+
+## Kontrollü Geçiş Mekanizması
+
+- Firmware versiyonu kontrolü (`version.txt`, header, metadata)  
+- **CRC / Hash** doğrulaması  
+- **Boot flag** kontrolü (EEPROM / FRAM üzerinde tutulabilir)  
+- Hata varsa `golden_image.bin` çalıştırılır  
+
+---
+
+## FreeRTOS / Bare-Metal Sistemlerde Kullanım
+
+```c
+if (check_flag_valid_app())
+    jump_to_application();
+else
+    jump_to_golden_image();
+```
+
+- Temel seviye uygulamalarda basit **flag + CRC kontrolü** yeterlidir  
+
+---
+
+## İpuçları
+
+- **Golden Image asla üzerine yazılmaz**, sadece güncel image güncellenir  
+- Bootloader, golden ve güncel image arasında **karar verecek mantık** içermelidir  
+- JTAG ile brick olan sistem kurtarılabilir, ancak **saha ortamında bu mümkün olmayabilir**  
+- Golden Image, **watchdog**, **FDIR**, **safe mode** mekanizmalarıyla birlikte çalışmalıdır  
