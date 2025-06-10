@@ -839,3 +839,120 @@ jobs:
 - **Mock GPIO** gibi tekniklerle testler simülasyon ortamında yapılabilir  
 - **Versiyon numaraları** otomatik üretilebilir (`git describe`, `build ID`)  
 - Donanım testleri için **hardware-in-the-loop** entegrasyonu planlanabilir  
+
+
+# Unit Test: Görevler, ISR ve Mocklama
+
+## Unit Test Nedir?
+
+- Küçük kod birimlerinin (**fonksiyon**, **görev** vb.) bağımsız olarak test edilmesidir  
+- Kodun doğruluğunu **erkenden ve izole şekilde** kontrol etmeye olanak sağlar  
+- Gömülü sistemlerde hata maliyeti yüksek olduğundan **kritik öneme sahiptir**  
+
+---
+
+## Gömülü Sistemlerde Test Zorlukları
+
+- Donanım bağımlılığı (GPIO, UART, SPI vs.)  
+- **ISR**, **timer**, **FreeRTOS task** gibi zaman veya donanım tabanlı yapıların soyutlanması  
+- Görevlerin zamanlamaya bağlı çalışması  
+- Çevresel bileşenlerin **mocklanması** gerekmesi  
+
+---
+
+## Test Framework’leri
+
+| Framework    | Özellik                                      |
+|--------------|-----------------------------------------------|
+| Unity        | Hafif, C diline uygun, gömülü sistem dostu     |
+| Ceedling     | Unity + otomasyon + CMock                     |
+| CMock        | Donanım fonksiyonları için **mock** üretir     |
+| GoogleTest   | C++ projeler için zengin API ve assert seçenekleri |
+
+---
+
+## Görev Testi Örneği
+
+```c
+void task_toggle_led(void *pvParameters) {
+    while (1) {
+        toggle_led();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+```
+
+### Test Edilebilir Hale Getirmek İçin
+
+- `toggle_led()` fonksiyonu ayrı tanımlanmalı ve mocklanabilir olmalı  
+- `vTaskDelay()` etkisi testte kaldırılmalı (yinelemeli simülasyon tercih edilir)  
+
+---
+
+## ISR Testi
+
+ISR’ler doğrudan test edilmez. Ancak:
+
+- ISR içinde çağrılan yardımcı fonksiyonlar **bağımsız test edilebilir**  
+- `xQueueSendFromISR()`, `xSemaphoreGiveFromISR()` gibi çağrılar mocklanabilir  
+
+```c
+void EXTI0_IRQHandler(void) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(xSemaphore, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+```
+
+- Bu örnekte ISR fonksiyonu değil, içindeki **FreeRTOS çağrıları** test kapsamına alınabilir  
+
+---
+
+## Mocklama Nedir?
+
+- Gerçek donanım fonksiyonlarının **taklit edilmesi**dir  
+- Giriş/çıkış etkisi olmadan yazılımın sadece mantığı test edilir  
+
+### Örnek
+
+#### Gerçek Fonksiyon
+
+```c
+void uart_send(char *msg) {
+    HAL_UART_Transmit(...);
+}
+```
+
+#### Mock Versiyon
+
+```c
+void uart_send(char *msg) {
+    mock_uart_log(msg);  // Sadece kaydet, donanım yok
+}
+```
+
+---
+
+## Ceedling ile Test Süreci
+
+```bash
+ceedling new my_test_project
+cd my_test_project
+ceedling test:all
+```
+
+### Dosya Yapısı
+
+- `test/test_my_module.c` → Test senaryoları  
+- `src/my_module.c` → Gerçek uygulama kodu  
+- `mock_my_module.c` → Otomatik mock dosyası (CMock üretir)  
+
+---
+
+## İpuçları
+
+- ISR içinde minimum işlem yap → test kolaylaşır  
+- **Delay** veya zaman bağlı fonksiyonlar izole edilmelidir  
+- Donanım arayüzleri (GPIO, UART) **soyutlanmalı**  
+- Her görev/fonksiyon için **code coverage** takibi yapılmalıdır  
+- **Mocklama ≠ Simülasyon** → yalnızca dış etkilerin taklididir, zaman davranışı içermez  
