@@ -1121,3 +1121,77 @@ set_property part xc7z020clg484-1 [current_project]
 - `-2` sınıfı, çoğu tasarım için **dengeli çözümdür**  
 - **Isı, maliyet ve güç tüketimi birlikte** değerlendirilmelidir  
 
+
+# Industrial Temperature ve Sıcaklık Sınıfları
+
+## Neden Önemlidir?
+
+- FPGA ve diğer entegre devreler, belirli sıcaklık aralıklarında **kararlı** çalışmak üzere tasarlanır  
+- Özellikle **savunma**, **uzay**, **otomotiv** ve **endüstriyel otomasyon** gibi kritik sistemlerde **ısı dayanımı** hayati öneme sahiptir  
+
+---
+
+## Sıcaklık Sınıfları
+
+| Sınıf       | Aralık (°C)           | Kullanım Alanı                  |
+|-------------|------------------------|----------------------------------|
+| Commercial  | 0°C to +85°C           | PC, tüketici elektroniği         |
+| Industrial  | -40°C to +100/+105°C   | Endüstriyel otomasyon, robotik   |
+| Automotive  | -40°C to +125°C        | Otomotiv sistemleri              |
+| Military    | -55°C to +125/+135°C   | Askeri, uzay, savunma sistemleri |
+
+---
+
+## FPGA Datasheet’lerinde Nasıl Belirtilir?
+
+- Parça numaralarında **son karakter** genellikle sıcaklık sınıfını belirtir:
+
+| Sonek | Sınıf        |
+|-------|--------------|
+| `-C`  | Commercial   |
+| `-I`  | Industrial   |
+| `-M`  | Military     |
+
+### Örnek
+
+```text
+XC7Z020-1CLG484I → Industrial grade
+```
+
+---
+
+## FPGA Sıcaklık Performans Etkileri
+
+- **Yüksek sıcaklıkta**:
+  - Delay artar, **Fmax düşer**
+  - Timing violation riski yükselir  
+- **Aşırı soğukta**:
+  - Delay azalabilir ancak malzeme **gerilimi** riski artar  
+- **Sıcaklık dalgalanması**, zamanlama tutarlılığını olumsuz etkileyebilir  
+
+---
+
+## Termal Yönetim Neden Kritiktir?
+
+- **Fan**, **heatsink**, **termal pad** gibi çözümler kullanılabilir  
+- **Xilinx Power Estimator (XPE)** ve **Vivado Thermal Analysis** araçları ile analiz yapılmalıdır  
+
+---
+
+## Termal Performans Takibi
+
+- FPGA içinde **dahili sıcaklık sensörü** bulunabilir  
+- Zynq gibi platformlarda **XADC** ile sıcaklık izlenebilir  
+
+```c
+float temp = read_xadc_temperature(); // Örnek pseudo kod
+```
+
+---
+
+## İpuçları
+
+- Projenin **çalışma ortam sıcaklığına göre** doğru sınıf seçilmelidir  
+- Sıcaklık aralığı uygun olsa bile **soğutma tasarımı** yapılmalıdır  
+- **Gerçek zamanlı sıcaklık takibi** ve **watchdog** entegrasyonu ile **FDIR** güçlendirilebilir  
+- Military ve automotive-grade FPGA’ler **daha pahalı** ve **uzun tedarik sürelidir**  
