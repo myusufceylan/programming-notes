@@ -1269,3 +1269,97 @@ else
 - Bootloader, golden ve güncel image arasında **karar verecek mantık** içermelidir  
 - JTAG ile brick olan sistem kurtarılabilir, ancak **saha ortamında bu mümkün olmayabilir**  
 - Golden Image, **watchdog**, **FDIR**, **safe mode** mekanizmalarıyla birlikte çalışmalıdır  
+
+
+# Bit Scrambling & Data Encoding Yaklaşımları
+
+## Bit Scrambling Nedir?
+
+- Verinin **şifrelenmeden**, fiziksel hatalara karşı **yeniden düzenlenmesidir**  
+- Hedef: Uzun süreli 0/1 dizilerini kırarak **sinyal bütünlüğünü korumak**  
+- Genellikle **seri iletişim** protokollerinde (UART, SPI, PCIe, SATA) kullanılır  
+
+---
+
+## Neden Kullanılır?
+
+- Uzun süreli aynı bit dizileri (ör. sürekli 0) → PLL senkron kaybına neden olabilir  
+- **DC dengesizlik** → alıcıda referans kaymasına yol açar  
+- **EMI (Elektromanyetik Girişim)** artar  
+- CRC gibi hata yakalama mekanizmalarının etkinliği artar (daha tutarlı veri)  
+
+---
+
+## Scrambling vs Encryption
+
+| Özellik        | Scrambling                         | Encryption                        |
+|----------------|-------------------------------------|------------------------------------|
+| Amaç           | Sinyal düzeyinde karışıklık        | Veri güvenliği ve gizlilik         |
+| Geri çözme     | Donanımsal olarak mümkündür        | Anahtar ile çözülür                |
+| Performans     | ✅ Çok hızlı (donanım tabanlı)     | ❌ Daha yavaş (karmaşık algoritmalar) |
+| Kullanım Alanı | PHY seviyesi, veri yolu            | Uygulama katmanı                   |
+
+---
+
+## Yaygın Scrambling / Encoding Yöntemleri
+
+### 1. LFSR (Linear Feedback Shift Register)
+
+- En yaygın donanımsal scrambling tekniğidir  
+- Her yeni bit, önceki bazı bitlerin XOR’lanması ile oluşur  
+- Tekrarsız, dengeli ve geçiş yoğunluğu yüksek veri üretir  
+
+```verilog
+reg [6:0] lfsr = 7'b1001101;
+always @(posedge clk) begin
+    lfsr <= {lfsr[5:0], lfsr[6] ^ lfsr[5]};
+end
+```
+
+---
+
+### 2. 8b/10b Encoding
+
+- 8-bit veriyi 10-bit kodla gönderir  
+- **DC denge** ve **maksimum geçiş sıklığı** sağlanır  
+- Kullanım: **PCIe**, **USB**, **SATA**, **DisplayPort**
+
+| 8-bit Giriş | 10-bit Kod       |
+|-------------|------------------|
+| `0xC5`      | `1101010100`     |
+
+---
+
+### 3. Manchester Encoding
+
+- Her bit 2 sinyale dönüştürülür:  
+  - `1` → `10`, `0` → `01`  
+- Saat sinyali verinin içine gömülür  
+- Kullanım: **Ethernet PHY**, RFID, IR iletişim  
+
+---
+
+## Hata Yakalama & Maskeleme
+
+- **Scrambling hata düzeltmez**, sadece iletim güvenliğini artırır  
+- Scrambling sonrası mutlaka **CRC, ECC** gibi doğrulama yöntemleri uygulanmalıdır  
+
+---
+
+## FPGA Uygulaması
+
+- LFSR tabanlı **scrambler** modülü basitçe implemente edilebilir  
+- Scrambler ve **descrambler simetrik** çalışır  
+
+```verilog
+assign data_out = data_in ^ lfsr_value;
+```
+
+---
+
+## İpuçları
+
+- Bit scrambling **güvenlik** sağlamaz → şifreleme değildir  
+- Donanım sistemlerinde **LFSR tercih edilir**, düşük kaynak kullanır  
+- Scrambling varsa, **descrambling** aynı algoritmayla yapılmalıdır  
+- UART gibi düşük hızlı protokollerde gerekmez, ancak **yüksek hızlı veri yollarında zorunludur**  
