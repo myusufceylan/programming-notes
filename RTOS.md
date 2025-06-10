@@ -1818,3 +1818,100 @@ app_entry(); // Uygulama başlatılır
 - **Rollback desteği** olmadan güncelleme mekanizması eksiktir  
 - Watchdog ile **boot döngüsü tespiti (loop detection)** entegre edilmelidir  
 - Geliştirme sırasında boot süresi ve firmware geçişleri **loglanmalı ve analiz edilmelidir**  
+
+
+# Memory Map, Flash Partitions, Linker Script Okuma
+
+## Memory Map (Bellek Haritası)
+
+- Mikrodenetleyici veya işlemcinin **adresleme düzenini** tanımlar  
+- Kod, veri ve çevre birimlerinin **bellek üzerindeki yerlerini** belirtir  
+
+### Tipik Bellek Bölmeleri
+
+| Bölge        | Açıklama                            |
+|--------------|-------------------------------------|
+| ROM / Flash  | Kod ve sabit veriler                |
+| RAM          | Değişkenler, stack, heap alanı      |
+| Periferikler | UART, GPIO, SPI gibi donanımlar     |
+| Özel Alanlar | Bootloader, EEPROM, log alanları    |
+
+```text
+0x0000_0000 → Boot ROM  
+0x0800_0000 → Flash Başlangıcı  
+0x2000_0000 → RAM Başlangıcı  
+0x4000_0000 → Periferik Kayıtlar  
+```
+
+---
+
+## Flash Partitions (Bölümlendirme)
+
+- Flash belleğin farklı bölgelere **amaç odaklı ayrılmasıdır**  
+- Amaç: Firmware, yedek, ayarlar ve loglar gibi bölümleri **birbirinden izole etmek**
+
+### Örnek Bölümleme
+
+| Bölüm        | Adres        | Açıklama                    |
+|--------------|--------------|-----------------------------|
+| Bootloader   | 0x08000000   | Sabit, güvenli başlatıcı    |
+| Firmware A   | 0x08010000   | Güncel yazılım              |
+| Firmware B   | 0x08030000   | Geri dönüş (fallback)       |
+| Config Data  | 0x08070000   | Kalıcı ayar bilgileri       |
+| User Logs    | 0x08078000   | Hata / debug logları        |
+
+---
+
+## Linker Script Nedir?
+
+- Derleyicinin hangi kodun **hangi bellek bölgesine** yerleştirileceğini belirleyen dosyadır  
+- `.ld` veya `.lds` uzantılıdır (GNU toolchain ile birlikte)  
+- **MEMORY** ve **SECTIONS** bloklarından oluşur  
+
+### Örnek Linker Script
+
+```ld
+MEMORY
+{
+  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 512K
+  RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 128K
+}
+
+SECTIONS
+{
+  .text : { *(.text*) } > FLASH
+  .data : { *(.data*) } > RAM
+  .bss  : { *(.bss*)  } > RAM
+}
+```
+
+---
+
+## Linker Script ile Neler Kontrol Edilir?
+
+- Kod (.text), veri (.data), boş alan (.bss) konumları  
+- Bootloader ve uygulama farklı alanlara yerleştirilebilir  
+- Belirli değişkenlerin sabit adrese konulması (`__attribute__((section))`)  
+- Flash’tan RAM’e kopyalanacak veri adresleri  
+
+```ld
+__firmware_start__ = 0x08010000;
+__firmware_end__   = 0x0802FFFF;
+```
+
+---
+
+## FreeRTOS ile Linker Script
+
+- Kernel + uygulama ayrı bölgelere yerleştirilebilir  
+- ISR’ler ve **interrupt vector table**, RAM başına yerleştirilebilir  
+- **Heap ve stack sınırları**, linker script üzerinden kontrol edilebilir  
+
+---
+
+## İpuçları
+
+- Linker script hatası → firmware çalışmaz, debug edilmesi zor olur  
+- Güvenlik için bootloader ve uygulama **ayrı bölgelerde** olmalı  
+- Güncelleme sistemlerinde partition'ların üzerine yazma **engellenmelidir**  
+- Bellek yapısı, watchdog, CRC, bootloader ile **uyumlu ve entegre tasarlanmalıdır**  
